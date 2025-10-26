@@ -26,7 +26,7 @@ if not data.Key or data.Key == "Unknown" then
         })
     end)
     task.delay(3, function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/apies13/AutoWalk/refs/heads/main/SIRENLogin.lua", true))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayLogin.lua", true))()
     end)
     return
 end
@@ -1692,7 +1692,7 @@ local Arunika = LeftGroupBox:AddButton({
         if not canWalk() then return end
         
         local success, err = pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/apies13/AutoWalk/refs/heads/main/SRN_Arunika.lua"))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SKY_Antartika.lua"))()
         end)
         if success then
             Library:Notify("Autowalk Loaded!", 5)
