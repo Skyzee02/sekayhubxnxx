@@ -484,9 +484,6 @@ if Tabs.Esp then
 
     -- Global Variables for ESP state
     _G.ESP_Enabled = false
-    _G.Part_ESP_Enabled = true
-    _G.Admin_ESP_Enabled = true
-    _G.Max_Distance = 250
     
     -- Table of colours to choose from
 local colourTable = {
@@ -506,21 +503,11 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
-if _G.CreateGui then
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "ESPToggleGui"
-    screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-
     -- 1. TOGGLE: ESP Global (Mengaktifkan seluruh fungsi ESP)
-    EspGroupbox:AddToggle("EspToggle", {
-        Text = "Aktifkan ESP Player",
-        Tooltip = "Aktifkan atau nonaktifkan Esp Player.",
-        Default = false,
-        Callback = function(value)
-          _G.ESP_Enabled = value
-          local function getCharacter(player)
-    for _, descendant in pairs(workspace:GetDescendants()) do
-        pcall(function()
+    
+    local function getCharacter(player)
+          for _, descendant in pairs(workspace:GetDescendants()) do
+          pcall(function()
             if descendant.Name == player.Name and descendant:FindFirstChild("HumanoidRootPart") then
                 return descendant
             end
@@ -592,50 +579,16 @@ Players.PlayerRemoving:Connect(function(playerRemoved)
     end
 end,
     })
-
-    -- 2. TOGGLE: Part Esp
-    EspGroupbox:AddToggle("PartEspToggle", {
-        Text = "Tampilkan Part ESP (Bug)",
-        Tooltip = "Tampilkan Part di sekitar.",
+    
+    EspGroupbox:AddToggle("EspToggle", {
+        Text = "Aktifkan ESP Player",
+        Tooltip = "Aktifkan atau nonaktifkan Esp Player.",
         Default = false,
-        Callback = function(Value)
-            _G.Box_ESP_Enabled = Value
-            print("Box ESP State: " .. tostring(Value))
+        Callback = function(value)
+          _G.ESP_Enabled = value
+          Library:Notify(Value and "ESP Player Activated!" or "ESP Player Deactivated!", 5)
         end,
     })
-
-    -- 3. TOGGLE: Admin ESP
-    EspGroupbox:AddToggle("AdminEspToggle", {
-        Text = "Tampilkan Esp Admin (Bug)",
-        Tooltip = "Tampilkan Esp Admin.",
-        Default = false,
-        Callback = function(Value)
-            _G.Health_ESP_Enabled = Value
-            print("Health Bar State: " .. tostring(Value))
-        end,
-    })
-
-    -- 4. SLIDER: Max Distance
-    EspGroupbox:AddSlider("MaxDistanceSlider", {
-        Text = "Jarak Render Maksimum (Bug)",
-        Default = 250,
-        Min = 50,
-        Max = 1000,
-        Rounding = 0,
-        Suffix = " meter",
-        Tooltip = "Atur jarak maksimum render ESP.",
-        Callback = function(Value)
-            _G.Max_Distance = Value
-            print("Jarak Maksimum ESP: " .. Value .. " meter")
-        end,
-    })
-
-    EspGroupbox:AddLabel("Fitur Lainnya akan ditambahkan disini...", true)
-
-else
-    -- Ini akan muncul di konsol jika Tab 'Esp' tidak terdefinisi di awal script
-    print("WARNING: Tab 'Esp' not found in Tabs table. ESP UI will not load.")
-end
 
 -- ========================================
 -- END OF ESP UI
