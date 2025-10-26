@@ -761,6 +761,94 @@ LeftDropdownGroupBox:AddInput("MyTextbox", {
     end,
 })
 
+-- =========================
+-- ESP HELPER FUNCTIONS
+-- =========================
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local LP = Players.LocalPlayer
+
+-- Placeholder/Dummy functions for ESP logic (Ganti dengan logika ESP drawing yang sebenarnya)
+local function validPart(part) 
+    return part and part:IsA("BasePart") 
+end
+
+local function ensureHighlight(character, color)
+    local highlight = character:FindFirstChild("PlayerESP_Highlight")
+    if not highlight or not highlight:IsA("Highlight") then
+        highlight = Instance.new("Highlight")
+        highlight.Name = "PlayerESP_Highlight"
+        highlight.FillColor = color
+        highlight.OutlineColor = color
+        highlight.DepthMode = Enum.DepthMode.Always
+        highlight.Parent = character
+    end
+    return highlight
+end
+
+local function makeBillboard(text, color)
+    local billboard = Instance.new("BillboardGui")
+    billboard.Size = UDim2.new(0, 150, 0, 50)
+    billboard.Adornee = nil -- Akan diset ke Head
+    billboard.AlwaysOnTop = true
+
+    local label = Instance.new("TextLabel")
+    label.Name = "Label"
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.Text = text
+    label.TextColor3 = color
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.SourceSans
+    label.TextSize = 14
+    label.Parent = billboard
+    
+    return billboard
+end
+
+local function applyPlayerESP(p)
+    -- Asumsi variabel Global dari menu yang mengontrol status:
+    local playerESPEnabled = _G.ESP_Enabled
+    local nametagsEnabled = _G.Nametag_ESP_Enabled -- Toggle baru
+    local col = Color3.fromRGB(255, 0, 0) -- Contoh warna merah
+
+    if p == LP then return end
+    local c = p.Character
+    if not c or not c:IsDescendantOf(Workspace) then return end
+
+    if playerESPEnabled then
+        if _G.Box_ESP_Enabled then -- Menggunakan toggle Box ESP yang sudah ada
+            ensureHighlight(c, col) 
+        end
+        
+        local head = c:FindFirstChild("Head")
+        if nametagsEnabled and validPart(head) then
+            local tag = head:FindFirstChild("Esp_Tag") or makeBillboard(p.Name, col)
+            tag.Name = "Esp_Tag"
+            tag.Parent = head
+            local l = tag:FindFirstChild("Label")
+            -- Tambahan: memastikan label terupdate
+            if l then
+                l.Text = p.Name -- Display Name
+            end
+        end
+    else
+        -- Clean up jika ESP dimatikan
+        pcall(function() c:FindFirstChild("PlayerESP_Highlight"):Destroy() end)
+        pcall(function() c:FindFirstChild("Head"):FindFirstChild("Esp_Tag"):Destroy() end)
+    end
+end
+
+-- =========================
+-- LOGIC LOOP (Diperlukan untuk menjalankan ESP secara terus-menerus)
+-- =========================
+game:GetService("RunService").RenderStepped:Connect(function()
+    if _G.ESP_Enabled then
+        for _, player in ipairs(Players:GetPlayers()) do
+            applyPlayerESP(player)
+        end
+    end
+end)
+
 -- Mount Dombret
 LeftDropdownGroupBox:AddDropdown("DombretDropdown", {
     Values = {"Spawn", "Summit"},
@@ -2193,11 +2281,27 @@ LeftGroupBox2:AddLabel(
 -- ESP
 local EspGroupbox = Tabs.Esp:AddLeftGroupbox("Visuals", "eye")
 
--- Global Variables for ESP state (Disimpan di _G agar bisa diakses oleh script ESP drawing terpisah)
-_G.ESP_Enabled = false
-_G.Box_ESP_Enabled = true
-_G.Health_ESP_Enabled = true
-_G.Max_Distance = 250
+-- Global Variables for ESP state (Pastikan ini ada di atas)
+    _G.ESP_Enabled = false
+    _G.Box_ESP_Enabled = true
+    _G.Nametag_ESP_Enabled = true -- VARIABEL BARU
+    _G.Health_ESP_Enabled = true
+    -- ...
+
+    -- ... (BoxEspToggle)
+
+    -- 2.5. TOGGLE: Nametag ESP (BARU)
+    EspGroupbox:AddToggle("NametagEspToggle", {
+        Text = "Tampilkan Nametag (Esp_Tag)",
+        Tooltip = "Tampilkan nama pemain di atas kepala.",
+        Default = true,
+        Callback = function(Value)
+            _G.Nametag_ESP_Enabled = Value
+            print("Nametag ESP State: " .. tostring(Value))
+        end,
+    })
+
+    -- ... (HealthEspToggle)
 
 -- 1. TOGGLE: ESP Global (Mengaktifkan seluruh fungsi ESP)
 EspGroupbox:AddToggle("EspToggle", {
