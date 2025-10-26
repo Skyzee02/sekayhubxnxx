@@ -761,94 +761,6 @@ LeftDropdownGroupBox:AddInput("MyTextbox", {
     end,
 })
 
--- =========================
--- ESP HELPER FUNCTIONS
--- =========================
-local Players = game:GetService("Players")
-local Workspace = game:GetService("Workspace")
-local LP = Players.LocalPlayer
-
--- Placeholder/Dummy functions for ESP logic (Ganti dengan logika ESP drawing yang sebenarnya)
-local function validPart(part) 
-    return part and part:IsA("BasePart") 
-end
-
-local function ensureHighlight(character, color)
-    local highlight = character:FindFirstChild("PlayerESP_Highlight")
-    if not highlight or not highlight:IsA("Highlight") then
-        highlight = Instance.new("Highlight")
-        highlight.Name = "PlayerESP_Highlight"
-        highlight.FillColor = color
-        highlight.OutlineColor = color
-        highlight.DepthMode = Enum.DepthMode.Always
-        highlight.Parent = character
-    end
-    return highlight
-end
-
-local function makeBillboard(text, color)
-    local billboard = Instance.new("BillboardGui")
-    billboard.Size = UDim2.new(0, 150, 0, 50)
-    billboard.Adornee = nil -- Akan diset ke Head
-    billboard.AlwaysOnTop = true
-
-    local label = Instance.new("TextLabel")
-    label.Name = "Label"
-    label.Size = UDim2.new(1, 0, 1, 0)
-    label.Text = text
-    label.TextColor3 = color
-    label.BackgroundTransparency = 1
-    label.Font = Enum.Font.SourceSans
-    label.TextSize = 14
-    label.Parent = billboard
-    
-    return billboard
-end
-
-local function applyPlayerESP(p)
-    -- Asumsi variabel Global dari menu yang mengontrol status:
-    local playerESPEnabled = _G.ESP_Enabled
-    local nametagsEnabled = _G.Nametag_ESP_Enabled -- Toggle baru
-    local col = Color3.fromRGB(255, 0, 0) -- Contoh warna merah
-
-    if p == LP then return end
-    local c = p.Character
-    if not c or not c:IsDescendantOf(Workspace) then return end
-
-    if playerESPEnabled then
-        if _G.Box_ESP_Enabled then -- Menggunakan toggle Box ESP yang sudah ada
-            ensureHighlight(c, col) 
-        end
-        
-        local head = c:FindFirstChild("Head")
-        if nametagsEnabled and validPart(head) then
-            local tag = head:FindFirstChild("Esp_Tag") or makeBillboard(p.Name, col)
-            tag.Name = "Esp_Tag"
-            tag.Parent = head
-            local l = tag:FindFirstChild("Label")
-            -- Tambahan: memastikan label terupdate
-            if l then
-                l.Text = p.Name -- Display Name
-            end
-        end
-    else
-        -- Clean up jika ESP dimatikan
-        pcall(function() c:FindFirstChild("PlayerESP_Highlight"):Destroy() end)
-        pcall(function() c:FindFirstChild("Head"):FindFirstChild("Esp_Tag"):Destroy() end)
-    end
-end
-
--- =========================
--- LOGIC LOOP (Diperlukan untuk menjalankan ESP secara terus-menerus)
--- =========================
-game:GetService("RunService").RenderStepped:Connect(function()
-    if _G.ESP_Enabled then
-        for _, player in ipairs(Players:GetPlayers()) do
-            applyPlayerESP(player)
-        end
-    end
-end)
-
 -- Mount Dombret
 LeftDropdownGroupBox:AddDropdown("DombretDropdown", {
     Values = {"Spawn", "Summit"},
@@ -2279,89 +2191,159 @@ LeftGroupBox2:AddLabel(
 )
 
 -- ESP
-local EspGroupbox = Tabs.Esp:AddLeftGroupbox("Visuals", "eye")
+_G.ESPToggle = false -- This is the variable used for enabling/disabling ESP.
+_G.CreateGui = false -- Change this to false to disable the popup gui.
+_G.KeyBind = Enum.KeyCode.H -- Change 'H' to whatever keybind. If on mobile, use the _G.CreateGui
 
--- Global Variables for ESP state (Pastikan ini ada di atas)
-    _G.ESP_Enabled = false
-    _G.Box_ESP_Enabled = true
-    _G.Nametag_ESP_Enabled = true -- VARIABEL BARU
-    _G.Health_ESP_Enabled = true
-    -- ...
+--[[
+    *This is commented out, don't worry about deleting it.*
+    *READ!*
+    If you would like a popup gui to enable/disable esp, set _G.CreateGui to true
+    Change _G.KeyBind to whatever keybind you want, by default it is 'H'. If you are on mobile, use the _G.CreateGui
+    Keybind to enable/disable is H by default.
+]]
 
-    -- ... (BoxEspToggle)
+-- Table of colours to choose from
+local colourTable = {
+    Green = Color3.fromRGB(0, 255, 0),
+    Blue = Color3.fromRGB(0, 0, 255),
+    Red = Color3.fromRGB(255, 0, 0),
+    Yellow = Color3.fromRGB(255, 255, 0),
+    Orange = Color3.fromRGB(255, 165, 0),
+    Purple = Color3.fromRGB(128, 0, 128)
+}
+local colourChosen = colourTable.Red -- 'Red' is the colour, only use colours from the above table.
 
-    -- 2.5. TOGGLE: Nametag ESP (BARU)
-    EspGroupbox:AddToggle("NametagEspToggle", {
-        Text = "Tampilkan Nametag (Esp_Tag)",
-        Tooltip = "Tampilkan nama pemain di atas kepala.",
-        Default = true,
-        Callback = function(Value)
-            _G.Nametag_ESP_Enabled = Value
-            print("Nametag ESP State: " .. tostring(Value))
-        end,
-    })
+-- Services and lp
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
 
-    -- ... (HealthEspToggle)
+if _G.CreateGui then
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "ESPToggleGui"
+    screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+    
+    -- Create a frame
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "MainFrame"
+    mainFrame.Size = UDim2.new(1, 0, 1, 0) 
+    mainFrame.BackgroundTransparency = 1  
+    mainFrame.Parent = screenGui
+    
+    -- Create the button
+    local toggleButton = Instance.new("TextButton") 
+    toggleButton.Name = "ToggleButton"
+    toggleButton.Size = UDim2.new(0, 200, 0, 50)
+    toggleButton.Position = UDim2.new(0.5, -100, 0.5, -25)
+    toggleButton.Text = "Toggle ESP"
+    toggleButton.Parent = mainFrame
+end
 
--- 1. TOGGLE: ESP Global (Mengaktifkan seluruh fungsi ESP)
-EspGroupbox:AddToggle("EspToggle", {
-    Text = "Aktifkan ESP Global",
-    Tooltip = "Aktifkan atau nonaktifkan semua fitur ESP (Box, Health, dll).",
-    Default = false,
-    Callback = function(Value)
-        _G.ESP_Enabled = Value
-        Library:Notify(Value and "ESP Global Activated!" or "ESP Global Deactivated!", 5)
-    end,
-})
+local function getCharacter(player)
+    for _, descendant in pairs(workspace:GetDescendants()) do
+        pcall(function()
+            if descendant.Name == player.Name and descendant:FindFirstChild("HumanoidRootPart") then
+                return descendant
+            end
+        end)
+    end   
+    return Workspace:FindFirstChild(player.Name)
+end
 
--- 2. TOGGLE: Box ESP
-EspGroupbox:AddToggle("BoxEspToggle", {
-    Text = "Tampilkan Box ESP",
-    Tooltip = "Tampilkan kotak 2D di sekitar pemain.",
-    Default = true,
-    Callback = function(Value)
-        _G.Box_ESP_Enabled = Value
-        if Value then
-            print("Box ESP Aktif")
-        else
-            print("Box ESP Nonaktif")
+-- Add highlights to players
+local function addHighlightToCharacter(player, character)
+    if player == LocalPlayer then return end  -- Skip local player
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if humanoidRootPart and not humanoidRootPart:FindFirstChild("Highlight") then
+        local highlightClone = Instance.new("Highlight")  -- Create a new Highlight instance
+        highlightClone.Name = "Highlight"
+        highlightClone.Adornee = character
+        highlightClone.Parent = humanoidRootPart
+        highlightClone.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        highlightClone.FillColor = colourChosen
+        highlightClone.OutlineColor = Color3.fromRGB(255, 255, 255)
+        highlightClone.FillTransparency = 0.5
+    end
+end
+
+-- Remove highlights from player
+local function removeHighlightFromCharacter(character)
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if humanoidRootPart then
+        local highlightInstance = humanoidRootPart:FindFirstChild("Highlight")
+        if highlightInstance then
+            highlightInstance:Destroy()
         end
-    end,
-})
+    end
+end
 
--- 3. TOGGLE: Health ESP
-EspGroupbox:AddToggle("HealthEspToggle", {
-    Text = "Tampilkan Health Bar",
-    Tooltip = "Tampilkan bar darah pemain.",
-    Default = true,
-    Callback = function(Value)
-        _G.Health_ESP_Enabled = Value
-        if Value then
-            print("Health Bar Aktif")
-        else
-            print("Health Bar Nonaktif")
+-- Function to update highlights based on the value of _G.ESPToggle
+local function updateHighlights()
+    for _, player in pairs(Players:GetPlayers()) do
+        local character = getCharacter(player)
+        if character then
+            if _G.ESPToggle then
+                addHighlightToCharacter(player, character)
+            else
+                removeHighlightFromCharacter(character)
+            end
         end
-    end,
-})
+    end
+end
 
--- 4. SLIDER: Max Distance
-EspGroupbox:AddSlider("MaxDistanceSlider", {
-    Text = "Jarak Render Maksimum",
-    Default = 250,
-    Min = 50,
-    Max = 1000,
-    Rounding = 0,
-    Suffix = " meter",
-    Tooltip = "Atur jarak maksimum render ESP.",
-    Callback = function(Value)
-        _G.Max_Distance = Value
-        print("Jarak Maksimum ESP: " .. Value .. " meter")
-    end,
-})
+-- Connect events through RenderStepped to loop
+RunService.RenderStepped:Connect(function()
+    updateHighlights()
+end)
 
--- ========================================
--- END OF ESP UI
--- ========================================
+-- Add highlight to joining players
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function(character)
+        if _G.ESPToggle then
+            addHighlightToCharacter(player, character)
+        end
+    end)
+end)
+
+-- Remove highlights from leaving players
+Players.PlayerRemoving:Connect(function(playerRemoved)
+    local character = playerRemoved.Character
+    if character then
+        removeHighlightFromCharacter(character)
+    end
+end)
+
+
+if _G.CreateGui then
+    toggleButton.MouseButton1Click:Connect(function()
+        _G.ESPToggle = not _G.ESPToggle
+        if _G.ESPToggle then
+            toggleButton.Text = "ESP ON"
+        else
+            toggleButton.Text = "ESP OFF"
+        end
+    end)
+    
+    -- Initial button text
+    if _G.ESPToggle then
+        toggleButton.Text = "ESP ON"
+    else
+        toggleButton.Text = "ESP OFF"
+    end
+end
+
+-- Keybind to toggle ESP
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if input.KeyCode == _G.KeyBind then
+        _G.ESPToggle = not _G.ESPToggle
+        if _G.CreateGui then
+            mainFrame.Visible = not mainFrame.Visible
+        end
+    end
+end)
 
 -- UI Settings
 local MenuGroup = Tabs["UI Settings"]:AddLeftGroupbox("Menu", "wrench")
