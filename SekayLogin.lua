@@ -36,7 +36,7 @@ local function ValidateKey(Key)
         success = true,
         expire_at = "2099-12-31 23:59:59", -- Mock expiration date
         status = "VIP Lifetime",          -- Mock status/level
-        uplink = "discord.gg/sekayhub",
+        uplink = "By Sekayzee",
         blacklist = 0,
         message = "Login Key Successfully"
     }
