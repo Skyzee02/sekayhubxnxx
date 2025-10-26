@@ -1632,13 +1632,14 @@ local function canWalk()
     return true
 end
 
+-- Atin
 local Atin = LeftGroupBox:AddButton({
     Text = "Mountain Atin",
     Func = function()
         if not canWalk() then return end
 
         local success, err = pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/apies13/AutoWalk/refs/heads/main/SRN_Atin.lua"))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SKY_Atin.lua"))()
         end)
         if success then
             Library:Notify("Autowalk Loaded!", 5)
@@ -1662,13 +1663,14 @@ local Atin = LeftGroupBox:AddButton({
 
 -- Function to check level before teleport
 
+-- Antartika
 local Antartika = LeftGroupBox:AddButton({
     Text = "Mountain Antartika",
     Func = function()
         if not canWalk() then return end
 
         local success, err = pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/apies13/AutoWalk/refs/heads/main/SRN_Antartika.lua"))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SKY_Antartika.lua"))()
         end)
         if success then
             Library:Notify("Autowalk Loaded!", 5)
@@ -1686,13 +1688,14 @@ local Antartika = LeftGroupBox:AddButton({
     Risky = false,
 })
 
+-- Arunika
 local Arunika = LeftGroupBox:AddButton({
     Text = "Mountain Arunika",
     Func = function()
         if not canWalk() then return end
         
         local success, err = pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SKY_Antartika.lua"))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SKY_Arunika.lua"))()
         end)
         if success then
             Library:Notify("Autowalk Loaded!", 5)
@@ -1710,13 +1713,14 @@ local Arunika = LeftGroupBox:AddButton({
     Risky = false,
 })
 
+-- Batu
 local Batu = LeftGroupBox:AddButton({
     Text = "Mountain Batu",
     Func = function()
         if not canWalk() then return end
 
         local success, err = pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/apies13/AutoWalk/refs/heads/main/SRN_Batu.lua"))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SKY_Batu.lua"))()
         end)
         if success then
             Library:Notify("Autowalk Loaded!", 5)
@@ -1734,13 +1738,14 @@ local Batu = LeftGroupBox:AddButton({
     Risky = false,
 })
 
+-- Ckptw
 local Ckptw = LeftGroupBox:AddButton({
     Text = "Mountain Ckptw",
     Func = function()
         if not canWalk() then return end
 
         local success, err = pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/apies13/AutoWalk/refs/heads/main/SRN_Ckptw.lua"))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SKY_Ckptw.lua"))()
         end)
         if success then
             Library:Notify("Autowalk Loaded!", 5)
@@ -1758,13 +1763,14 @@ local Ckptw = LeftGroupBox:AddButton({
     Risky = false,
 })
 
+-- Daun
 local Daun = LeftGroupBox:AddButton({
     Text = "Mountain Daun",
     Func = function()
         if not canWalk() then return end
 
         local success, err = pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/apies13/AutoWalk/refs/heads/main/SRN_Daun.lua"))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SKY_Daun.lua"))()
         end)
         if success then
             Library:Notify("Autowalk Loaded!", 5)
@@ -1782,13 +1788,14 @@ local Daun = LeftGroupBox:AddButton({
     Risky = false,
 })
 
+-- Hana
 local Hana = LeftGroupBox:AddButton({
     Text = "Mountain Hana",
     Func = function()
         if not canWalk() then return end
 
         local success, err = pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/apies13/AutoWalk/refs/heads/main/SRN_Hana.lua"))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SKY_Hana.lua"))()
         end)
         if success then
             Library:Notify("Autowalk Loaded!", 5)
@@ -1806,13 +1813,14 @@ local Hana = LeftGroupBox:AddButton({
     Risky = false,
 })
 
+-- Lembayana
 local Lembayana = LeftGroupBox:AddButton({
     Text = "Mountain Lembayana",
     Func = function()
         if not canWalk() then return end
 
         local success, err = pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/apies13/AutoWalk/refs/heads/main/SRN_Lembayana.lua"))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SKY_Lembayana.lua"))()
         end)
         if success then
             Library:Notify("Autowalk Loaded!", 5)
@@ -1830,13 +1838,14 @@ local Lembayana = LeftGroupBox:AddButton({
     Risky = false,
 })
 
+-- Lingkarsa
 local Lingkarsa = LeftGroupBox:AddButton({
     Text = "Mountain Lingkarsa",
     Func = function()
         if not canWalk() then return end
 
         local success, err = pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/apies13/AutoWalk/refs/heads/main/SRN_Lingkarsa.lua"))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SKY_Lingkarsa.lua"))()
         end)
         if success then
             Library:Notify("Autowalk Loaded!", 5)
@@ -1861,7 +1870,7 @@ local Kalista = LeftGroupBox:AddButton({
         if not canWalk() then return end
 
         local success, err = pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/apies13/AutoWalk/refs/heads/main/SRN_Kalista.lua"))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SKY_Kalista.lua"))()
         end)
         if success then
             Library:Notify("Autowalk Loaded!", 5)
@@ -1884,7 +1893,7 @@ local Kaliya = LeftGroupBox:AddButton({
         if not canWalk() then return end
 
         local success, err = pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/apies13/AutoWalk/refs/heads/main/SRN_Kaliya.lua"))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SKY_Kaliya.lua"))()
         end)
         if success then
             Library:Notify("Autowalk Loaded!", 5)
@@ -1907,7 +1916,7 @@ local Pargoy = LeftGroupBox:AddButton({
         if not canWalk() then return end
 
         local success, err = pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/apies13/AutoWalk/refs/heads/main/SRN_Pargoy.lua"))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SKY_Pargoy.lua"))()
         end)
         if success then
             Library:Notify("Autowalk Loaded!", 5)
@@ -1930,7 +1939,7 @@ local Sakahayang = LeftGroupBox:AddButton({
         if not canWalk() then return end
 
         local success, err = pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/apies13/AutoWalk/refs/heads/main/SRN_Sakahayang.lua"))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SKY_Sakahayang.lua"))()
         end)
         if success then
             Library:Notify("Autowalk Loaded!", 5)
@@ -1946,6 +1955,29 @@ local Sakahayang = LeftGroupBox:AddButton({
     Risky = false,
 })
 
+-- Salvatore
+local Sakahayang = LeftGroupBox:AddButton({
+    Text = "Mountain Salvatore",
+    Func = function()
+        if not canWalk() then return end
+
+        local success, err = pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SKY_Salvatore.lua"))()
+        end)
+        if success then
+            Library:Notify("Autowalk Loaded!", 5)
+        else
+            warn("[Sekay Hub] Gagal load script:", err)
+        end
+    end,
+    DoubleClick = false,
+    Tooltip = "Auto Walk Mount Salvatore",
+    DisabledTooltip = "Button ini disabled!",
+    Disabled = false,
+    Visible = true,
+    Risky = false,
+})
+
 -- Serendipity
 local Serendipity = LeftGroupBox:AddButton({
     Text = "Mountain Serendipity",
@@ -1953,7 +1985,7 @@ local Serendipity = LeftGroupBox:AddButton({
         if not canWalk() then return end
 
         local success, err = pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/apies13/AutoWalk/refs/heads/main/SRN_Serendipity.lua"))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SKY_Serendipity.lua"))()
         end)
         if success then
             Library:Notify("Autowalk Loaded!", 5)
@@ -1969,7 +2001,7 @@ local Serendipity = LeftGroupBox:AddButton({
     Risky = false,
 })
 
-
+-- Yahayuk
 local Yahayuk = LeftGroupBox:AddButton({
     Text = "Mountain Yahayuk",
     Func = function()
@@ -1994,13 +2026,14 @@ local Yahayuk = LeftGroupBox:AddButton({
     Risky = false,
 })
 
+-- Ravika
 local Ravika = LeftGroupBox:AddButton({
     Text = "Mountain Ravika",
     Func = function()
         if not canWalk() then return end
 
         local success, err = pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/apies13/AutoWalk/refs/heads/main/SRN_Ravika.lua"))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SKY_Ravika.lua"))()
         end)
         if success then
             Library:Notify("Autowalk Loaded!", 5)
@@ -2018,13 +2051,14 @@ local Ravika = LeftGroupBox:AddButton({
     Risky = false,
 })
 
+-- Sibuatan
 local Sibuatans = LeftGroupBox:AddButton({
     Text = "Mountain Sibuatan",
     Func = function()
         if not canWalk() then return end
 
         local success, err = pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/apies13/AutoWalk/refs/heads/main/SRN_Sibuatan.lua"))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SKY_Sibuatan.lua"))()
         end)
         if success then
             Library:Notify("Autowalk Loaded!", 5)
@@ -2042,13 +2076,39 @@ local Sibuatans = LeftGroupBox:AddButton({
     Risky = false,
 })
 
+-- Sibuatan 1
+local Sibuatans = LeftGroupBox:AddButton({
+    Text = "Mountain Sibuatan 1",
+    Func = function()
+        if not canWalk() then return end
+
+        local success, err = pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SKY_Sibuatan1.lua"))()
+        end)
+        if success then
+            Library:Notify("Autowalk Loaded!", 5)
+        else
+            warn("[Sekay Hub] Gagal load script:", err)
+        end
+    end,
+    DoubleClick = false,
+
+    Tooltip = "Auto Walk Mount Sibuatan 1",
+    DisabledTooltip = "Button ini disabled!",
+
+    Disabled = false,
+    Visible = true,
+    Risky = false,
+})
+
+-- Stecu
 local StecuWalk = LeftGroupBox:AddButton({
     Text = "Mountain Stecu",
     Func = function()
         if not canWalk() then return end
 
         local success, err = pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/apies13/AutoWalk/refs/heads/main/SRN_Stecu.lua"))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SKY_Stecu.lua"))()
         end)
         if success then
             Library:Notify("Autowalk Loaded!", 5)
@@ -2066,6 +2126,32 @@ local StecuWalk = LeftGroupBox:AddButton({
     Risky = false,
 })
 
+-- Tiatin
+local StecuWalk = LeftGroupBox:AddButton({
+    Text = "Mountain Tiatin",
+    Func = function()
+        if not canWalk() then return end
+
+        local success, err = pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SKY_TIATIN.lua"))()
+        end)
+        if success then
+            Library:Notify("Autowalk Loaded!", 5)
+        else
+            warn("[Sekay Hub] Gagal load script:", err)
+        end
+    end,
+    DoubleClick = false,
+
+    Tooltip = "Auto Walk Mount Tiatin",
+    DisabledTooltip = "Button ini disabled!",
+
+    Disabled = false,
+    Visible = true,
+    Risky = false,
+})
+
+-- Yntkts
 local Yntkts = LeftGroupBox:AddButton({
     Text = "Mountain Yntkts",
     Func = function()
