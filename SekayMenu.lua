@@ -119,7 +119,7 @@ local Tabs = {
 	Main = Window:AddTab("General", "house"),
 	Teleports = Window:AddTab("Teleport", "map-pin"),
     Tween = Window:AddTab("Auto Walk", "rewind"),
-    Aimbot = Window:AddTab("ESP & Aimbot", "crosshair"),
+    Aimbot = Window:AddTab("ESP", "crosshair"),
 	-- Key = Window:AddKeyTab("Key System"),
 	["UI Settings"] = Window:AddTab("UI Settings", "settings"),
 }
