@@ -112,7 +112,7 @@ WhitelistTab:AddButton({
 
             task.delay(3, function()
                 Library:Unload()
-                loadstring(game:HttpGet("https://raw.githubusercontent.com/apies13/AutoWalk/refs/heads/main/SIRENMenu.lua", true))()
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayMenu.lua", true))()
             end)
         else
             Library:Notify("Access Denied: You are not whitelisted!", 5)
@@ -281,7 +281,7 @@ KeyTab:AddKeyBox(function(Success, RecivedKey)
 
         task.delay(3, function()
             Library:Unload()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/apies13/AutoWalk/refs/heads/main/SIRENMenu.lua", true))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayMenu.lua", true))()
         end)
     else
         Library:Notify("Incorrect Key! " .. tostring(dataOrMsg), 5)
