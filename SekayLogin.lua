@@ -38,7 +38,7 @@ local function ValidateKey(Key)
         status = "VIP Lifetime",          -- Mock status/level
         uplink = "V1.0",
         blacklist = 0,
-        message = "Login Key Successfully"
+        message = "Login Bypassed Successfully"
     }
     return true, mock_data
 end
