@@ -196,6 +196,7 @@ local LeftGroupBox = Tabs.Information:AddLeftGroupbox("Licenses")
 LeftGroupBox:AddLabel(
     "Roblox Username: " .. Username ..
     "\nRoblox ID: " .. tostring(player.UserId or "Unknown") ..
+    "\nHwid: " .. Hwid ..
     "\n\nLevel: " .. Level ..
     "\nYour Key: " .. Key ..
     "\nExpired At: " .. ExpireAt ..
