@@ -487,6 +487,29 @@ if Tabs.Esp then
     _G.Part_ESP_Enabled = true
     _G.Admin_ESP_Enabled = true
     _G.Max_Distance = 250
+    
+    -- Table of colours to choose from
+local colourTable = {
+    Green = Color3.fromRGB(0, 255, 0),
+    Blue = Color3.fromRGB(0, 0, 255),
+    Red = Color3.fromRGB(255, 0, 0),
+    Yellow = Color3.fromRGB(255, 255, 0),
+    Orange = Color3.fromRGB(255, 165, 0),
+    Purple = Color3.fromRGB(128, 0, 128)
+}
+local colourChosen = colourTable.Red -- 'Red' is the colour, only use colours from the above table.
+
+-- Services and lp
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+
+if _G.CreateGui then
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "ESPToggleGui"
+    screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
     -- 1. TOGGLE: ESP Global (Mengaktifkan seluruh fungsi ESP)
     EspGroupbox:AddToggle("EspToggle", {
