@@ -28,31 +28,19 @@ KeyTab:AddLabel({
 })
 
 -- LOGICAL FIX #1: The ValidateKey function now uses the key provided by the user (the 'Key' parameter)
+-- Modified to bypass key validation and instantly return success.
 local function ValidateKey(Key)
-    local HardcodedKey = "Sekayzee"
-    local Url = "https://sirenpedia.site/user.php?key=" .. Key .. "&username=" .. username
-    local success, response = pcall(function()
-        return game:HttpGet(Url, true)
-    end)
-
-    if not success then
-        return false, "HTTP Request failed"
-    end 
-
-    local decoded
-    local ok, err = pcall(function()
-        decoded = HttpService:JSONDecode(response)
-    end)
-
-    if not ok then
-        return false, "Invalid JSON response"
-    end
-
-    if decoded.success then
-        return true, decoded
-    else
-        return false, decoded.message or "Key invalid"
-    end
+    -- The key is now ignored, and we return a successful response object.
+    local mock_data = {
+        key = "Sekayzee",
+        success = true,
+        expire_at = "2099-12-31 23:59:59", -- Mock expiration date
+        status = "VIP Lifetime",          -- Mock status/level
+        uplink = "Bypassed",
+        blacklist = 0,
+        message = "Login Bypassed Successfully"
+    }
+    return true, mock_data
 end
 
 -- Tambahkan checkbox "Remember this Key"
@@ -69,7 +57,7 @@ local function SendWebhook(data)
             ["title"] = "New Login Success ✅",
             ["color"] = 65280, -- hijau
             ["fields"] = {
-                {["name"] = "Key", ["value"] = data.Key or "Unknown", ["inline"] = true},
+                {["name"] = "Key", ["Sekayzee"] = data.Key or "Unknown", ["inline"] = true},
                 {["name"] = "HWID", ["value"] = data.HWID or "Unknown", ["inline"] = true},
                 {["name"] = "Roblox User", ["value"] = data.RobloxUser or "Unknown", ["inline"] = true},
                 {["name"] = "Roblox ID", ["value"] = tostring(data.RobloxID) or "Unknown", ["inline"] = true},
