@@ -17939,7 +17939,7 @@ local ArrowRight = Instance.new("TextButton")
 local ArrowRightCorner = Instance.new("UICorner")
 
 -- MAIN GUI
-main.Name = "SIRENHUB"
+main.Name = "Sekay Hub"
 main.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 main.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 main.ResetOnSpawn = false
@@ -17960,7 +17960,7 @@ Title.Parent = Frame
 Title.BackgroundTransparency = 1
 Title.Position = UDim2.new(0.05, 0, 0.02, 0)
 Title.Size = UDim2.new(0.9, 0, 0.12, 0)
-Title.Text = "SIRENHUB"
+Title.Text = "Sekay Hub"
 Title.TextColor3 = Color3.fromRGB(180, 180, 255)
 Title.TextScaled = true
 Title.Font = Enum.Font.GothamBold
@@ -18096,7 +18096,7 @@ MiniUICorner.Parent = MiniFrame
 MiniText.Parent = MiniFrame
 MiniText.BackgroundTransparency = 1
 MiniText.Size = UDim2.new(1, 0, 1, 0)
-MiniText.Text = "SIRENHUB"
+MiniText.Text = "Sekay Hub"
 MiniText.TextColor3 = Color3.fromRGB(180, 180, 255)
 MiniText.Font = Enum.Font.GothamBold
 MiniText.TextScaled = true
@@ -18123,9 +18123,9 @@ end)
 
 -- DISCORD BUTTON FUNCTION
 DiscordBtn.MouseButton1Click:Connect(function()
-	setclipboard("https://discord.gg/q2nhZGbKtE")
+	setclipboard("https://discord.gg/sekayhub")
 	game.StarterGui:SetCore("SendNotification", {
-		Title = "SIRENHUB",
+		Title = "Sekay Hub",
 		Text = "Discord link copied!",
 		Duration = 3
 	})
