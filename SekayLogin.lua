@@ -2,15 +2,15 @@ local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/deivi
 
 local Window = Library:CreateWindow({
     Title = "Sekay Hub",
-    Footer = "Version: 1.0.2", --small text in the bottom of page
+    Footer = "Version: 1.0.2 - Whitelist System", -- Diperbarui
     ToggleKeybind = Enum.KeyCode.RightControl,
     Center = true,
     AutoShow = true,
-    Resizable = false, --not rezizeable
-    Size = UDim2.fromOffset(700, 500) -- size of ui
+    Resizable = false,
+    Size = UDim2.fromOffset(700, 500)
 })
 
--- PERBAIKAN: Mengganti KeyTab dengan WhitelistTab dan menggunakan AddTab biasa
+-- PERBAIKAN: Menggunakan WhitelistTab yang didefinisikan dengan benar
 local WhitelistTab = Window:AddTab("Whitelist", "user") 
 local InfoTab = Window:AddTab("Info", "info")
 local Analytics = game:GetService("RbxAnalyticsService")
@@ -22,11 +22,12 @@ local hwid = Analytics:GetClientId()
 local username = player and player.Name or "Unknown"
 local userid = player and player.UserId or "Unknown"
 
+-- ===================================================
 -- 🔑 WHITELIST CONFIGURATION
 -- Tambahkan semua username yang diizinkan di sini (Case-sensitive!)
 -- ===================================================
 local WhitelistedUsers = {
-    "Sekayzee666", -- Ganti dengan username yang benar
+    "Sekayzee666", 
     "Sekayzee999"
     -- Tambahkan lebih banyak username di sini...
 }
@@ -34,7 +35,17 @@ local WhitelistedUsers = {
 -- Ganti dengan webhook Discord kamu
 local WebhookUrl = "https://canary.discord.com/api/webhooks/1432014189567672351/SQ8Ozl5j5ZMbs5p3jKN2HZvnAKJT-ShQrfzf3vyiZZYaT7-Jl3xP-PeaSb1DlKWtywEj"
 
--- Fungsi untuk kirim webhook (Diperbarui untuk Whitelist)
+-- Fungsi untuk memeriksa Whitelist
+local function CheckWhitelist(userName)
+    for _, whitelistedName in pairs(WhitelistedUsers) do
+        if userName == whitelistedName then
+            return true
+        end
+    end
+    return false
+end
+
+-- Fungsi untuk kirim webhook (HANYA VERSI WHITELIST YANG DIGUNAKAN)
 local function SendWebhook(isSuccess)
     local title = isSuccess and "Whitelist Login Success ✅" or "Whitelist Login Failed ❌"
     local color = isSuccess and 65280 or 16711680 -- Hijau untuk sukses, Merah untuk gagal
@@ -69,16 +80,6 @@ local function SendWebhook(isSuccess)
     end
 end
 
--- Fungsi untuk memeriksa Whitelist
-local function CheckWhitelist(userName)
-    for _, whitelistedName in pairs(WhitelistedUsers) do
-        if userName == whitelistedName then
-            return true
-        end
-    end
-    return false
-end
-
 -- ===================================================
 -- Whitelist Tab Logic
 -- ===================================================
@@ -90,7 +91,7 @@ WhitelistTab:AddLabel({
 })
 
 WhitelistTab:AddLabel({
-    Text = "Attempting Whitelist Check...",
+    Text = "Click 'Verify Access' to check if your Roblox username is whitelisted.",
     DoesWrap = true,
 })
 
@@ -101,7 +102,7 @@ WhitelistTab:AddButton({
             Library:Notify("Access Granted: Whitelisted User!", 5)
             SendWebhook(true)
 
-            -- Data dummy untuk kompatibilitas, karena tidak ada data API
+            -- Data dummy untuk kompatibilitas
             _G.SIREN_Data = {
                 RobloxUser = username,
                 RobloxID = userid,
@@ -129,7 +130,7 @@ WhitelistTab:AddButton({
 })
 
 -- ===================================================
--- Info Tab (Dibersihkan dari referensi "How To Get Key")
+-- Info Tab 
 -- ===================================================
 
 local LeftGroupbox = InfoTab:AddLeftGroupbox("Information", "info_desc")
@@ -164,7 +165,6 @@ RightGroupbox:AddLabel({
     DoesWrap = true
 })
 
--- Bagian tombol Copy HWID, Username, dan RobloxID tetap sama
 local Button = RightGroupbox:AddButton({
     Text = "Copy HWID",
     Func = function()
@@ -213,9 +213,6 @@ local Button = UIGroupbox:AddButton({
     end,
     DoubleClick = false
 })
-
--- Ganti dengan webhook Discord kamu
-local WebhookUrl = "https://canary.discord.com/api/webhooks/1432014189567672351/SQ8Ozl5j5ZMbs5p3jKN2HZvnAKJT-ShQrfzf3vyiZZYaT7-Jl3xP-PeaSb1DlKWtywEj"
 
 -- Fungsi untuk kirim webhook
 local function SendWebhook(data)
