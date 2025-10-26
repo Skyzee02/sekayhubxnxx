@@ -119,7 +119,7 @@ local Tabs = {
 	Main = Window:AddTab("General", "house"),
 	Teleports = Window:AddTab("Teleport", "map-pin"),
     Tween = Window:AddTab("Auto Walk", "rewind"),
-    Aimbot = Window:AddTab("ESP", "crosshair"),
+    Esp = Window:AddTab("ESP", "eye"),
 	-- Key = Window:AddKeyTab("Key System"),
 	["UI Settings"] = Window:AddTab("UI Settings", "settings"),
 }
@@ -2189,6 +2189,75 @@ LeftGroupBox2:AddLabel(
 	"This feature should be used responsibly to avoid being banned by Roblox admins or staff.\n\nSekay Hub 2025",
 	true
 )
+
+-- ESP
+local EspGroupbox = Tabs.Esp:AddLeftGroupbox("Visuals", "eye")
+
+-- Global Variables for ESP state (Disimpan di _G agar bisa diakses oleh script ESP drawing terpisah)
+_G.ESP_Enabled = false
+_G.Box_ESP_Enabled = true
+_G.Health_ESP_Enabled = true
+_G.Max_Distance = 250
+
+-- 1. TOGGLE: ESP Global (Mengaktifkan seluruh fungsi ESP)
+EspGroupbox:AddToggle("EspToggle", {
+    Text = "Aktifkan ESP Global",
+    Tooltip = "Aktifkan atau nonaktifkan semua fitur ESP (Box, Health, dll).",
+    Default = false,
+    Callback = function(Value)
+        _G.ESP_Enabled = Value
+        Library:Notify(Value and "ESP Global Activated!" or "ESP Global Deactivated!", 5)
+    end,
+})
+
+-- 2. TOGGLE: Box ESP
+EspGroupbox:AddToggle("BoxEspToggle", {
+    Text = "Tampilkan Box ESP",
+    Tooltip = "Tampilkan kotak 2D di sekitar pemain.",
+    Default = true,
+    Callback = function(Value)
+        _G.Box_ESP_Enabled = Value
+        if Value then
+            print("Box ESP Aktif")
+        else
+            print("Box ESP Nonaktif")
+        end
+    end,
+})
+
+-- 3. TOGGLE: Health ESP
+EspGroupbox:AddToggle("HealthEspToggle", {
+    Text = "Tampilkan Health Bar",
+    Tooltip = "Tampilkan bar darah pemain.",
+    Default = true,
+    Callback = function(Value)
+        _G.Health_ESP_Enabled = Value
+        if Value then
+            print("Health Bar Aktif")
+        else
+            print("Health Bar Nonaktif")
+        end
+    end,
+})
+
+-- 4. SLIDER: Max Distance
+EspGroupbox:AddSlider("MaxDistanceSlider", {
+    Text = "Jarak Render Maksimum",
+    Default = 250,
+    Min = 50,
+    Max = 1000,
+    Rounding = 0,
+    Suffix = " meter",
+    Tooltip = "Atur jarak maksimum render ESP.",
+    Callback = function(Value)
+        _G.Max_Distance = Value
+        print("Jarak Maksimum ESP: " .. Value .. " meter")
+    end,
+})
+
+-- ========================================
+-- END OF ESP UI
+-- ========================================
 
 -- UI Settings
 local MenuGroup = Tabs["UI Settings"]:AddLeftGroupbox("Menu", "wrench")
