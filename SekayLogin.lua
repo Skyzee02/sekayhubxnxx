@@ -2,16 +2,15 @@ local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/deivi
 
 local Window = Library:CreateWindow({
     Title = "Sekay Hub",
-    Footer = "Version: 1.0.2 - Whitelist System", -- Diperbarui
+    Footer = "Version: 1.0.2", --small text in the bottom of page
     ToggleKeybind = Enum.KeyCode.RightControl,
     Center = true,
     AutoShow = true,
-    Resizable = false,
-    Size = UDim2.fromOffset(700, 500)
+    Resizable = false, --not rezizeable
+    Size = UDim2.fromOffset(700, 500) -- size of ui
 })
 
--- PERBAIKAN: Menggunakan WhitelistTab yang didefinisikan dengan benar
-local WhitelistTab = Window:AddTab("Whitelist", "user") 
+local KeyTab = Window:AddKeyTab("Login")
 local InfoTab = Window:AddTab("Info", "info")
 local Analytics = game:GetService("RbxAnalyticsService")
 local HttpService = game:GetService("HttpService")
@@ -22,197 +21,45 @@ local hwid = Analytics:GetClientId()
 local username = player and player.Name or "Unknown"
 local userid = player and player.UserId or "Unknown"
 
--- ===================================================
--- 🔑 WHITELIST CONFIGURATION
--- Tambahkan semua username yang diizinkan di sini (Case-sensitive!)
--- ===================================================
-local WhitelistedUsers = {
-    "Sekayzee666", 
-    "Sekayzee999",
-    -- Tambahkan lebih banyak username di sini...
-}
-
--- Ganti dengan webhook Discord kamu
-local WebhookUrl = "https://canary.discord.com/api/webhooks/1432014189567672351/SQ8Ozl5j5ZMbs5p3jKN2HZvnAKJT-ShQrfzf3vyiZZYaT7-Jl3xP-PeaSb1DlKWtywEj"
-
--- Fungsi untuk memeriksa Whitelist
-local function CheckWhitelist(userName)
-    for _, whitelistedName in pairs(WhitelistedUsers) do
-        if userName == whitelistedName then
-            return true
-        end
-    end
-    return false
-end
-
--- Fungsi untuk kirim webhook (HANYA VERSI WHITELIST YANG DIGUNAKAN)
-local function SendWebhook(isSuccess)
-    local title = isSuccess and "Whitelist Login Success ✅" or "Whitelist Login Failed ❌"
-    local color = isSuccess and 65280 or 16711680 -- Hijau untuk sukses, Merah untuk gagal
-    
-    local body = {
-        ["username"] = "Sekay Hub Logger",
-        ["embeds"] = {{
-            ["title"] = title,
-            ["color"] = color,
-            ["fields"] = {
-                {["name"] = "Roblox User", ["value"] = username or "Unknown", ["inline"] = true},
-                {["name"] = "Roblox ID", ["value"] = tostring(userid) or "Unknown", ["inline"] = true},
-                {["name"] = "HWID", ["value"] = hwid or "Unknown", ["inline"] = true},
-            },
-            ["footer"] = {
-                ["text"] = "Sekay Hub Whitelist Logger"
-            },
-            ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%SZ")
-        }}
-    }
-
-    local headers = {["Content-Type"] = "application/json"}
-    local encoded = HttpService:JSONEncode(body)
-    request = request or http_request or syn and syn.request
-    if request then
-        request({
-            Url = WebhookUrl,
-            Method = "POST",
-            Headers = headers,
-            Body = encoded
-        })
-    end
-end
-
--- ===================================================
--- Whitelist Tab Logic
--- ===================================================
-
-WhitelistTab:AddLabel({
+KeyTab:AddLabel({
     Text = "Welcome To\nSekay Hub",
     DoesWrap = true,
     Size = 36,
 })
 
-WhitelistTab:AddLabel({
-    Text = "Click 'Verify Access' to check if your Roblox username is whitelisted.",
-    DoesWrap = true,
-})
+-- LOGICAL FIX #1: The ValidateKey function now uses the key provided by the user (the 'Key' parameter)
+local function ValidateKey(Key)
+    local HardcodedKey = "Sekayzee"
+    local Url = "https://sirenpedia.site/user.php?key=" .. Key .. "&username=" .. username
+    local success, response = pcall(function()
+        return game:HttpGet(Url, true)
+    end)
 
-WhitelistTab:AddButton({
-    Text = "<font color='rgb(0, 255, 0)'>Verify Access</font>",
-    Func = function()
-        if CheckWhitelist(username) then
-            Library:Notify("Access Granted: Whitelisted User!", 5)
-            SendWebhook(true)
+    if not success then
+        return false, "HTTP Request failed"
+    end 
 
-            -- Data dummy untuk kompatibilitas
-            _G.SIREN_Data = {
-                RobloxUser = username,
-                RobloxID = userid,
-                HWID = hwid,
-                Level = "Whitelist", 
-            }
+    local decoded
+    local ok, err = pcall(function()
+        decoded = HttpService:JSONDecode(response)
+    end)
 
-            task.delay(3, function()
-                Library:Unload()
-                loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayMenu.lua", true))()
-            end)
-        else
-            Library:Notify("Access Denied: You are not whitelisted!", 5)
-            SendWebhook(false)
-        end
-    end,
-    DoubleClick = false
-})
-WhitelistTab:AddButton({
-    Text = "Check your info in the <font color='rgb(0, 195, 255)'>Info</font> Tab!",
-    Func = function()
-        Window:SelectTab(InfoTab)
-    end,
-    DoubleClick = false
-})
-
--- ===================================================
--- Info Tab 
--- ===================================================
-
-local LeftGroupbox = InfoTab:AddLeftGroupbox("Information", "info_desc")
-
-local WrappedLabel = LeftGroupbox:AddLabel({
-    Text = "This hub uses a Username Whitelist system. Your username is currently: **" .. username .. "**.\n\nOnly users explicitly listed in the script are granted access.",
-    DoesWrap = true
-})
-
-local Button = LeftGroupbox:AddButton({
-    Text = "<font color='rgb(0, 123, 255)'>Discord</font>",
-    Func = function()
-        print("Copied Discord link: https://dsc.gg/sekayhub")
-        setclipboard("https://dsc.gg/sekayhub")
-    end,
-    DoubleClick = false
-})
-
-Button:AddButton({
-    Text = "<font color='rgb(255, 165, 0)'>Safelinku</font>",
-    Func = function()
-        print("Copied Linktree link: https://sfl.gl/qjUTr")
-        setclipboard("https://sfl.gl/qjUTr")
+    if not ok then
+        return false, "Invalid JSON response"
     end
-})
 
-
-local RightGroupbox = InfoTab:AddRightGroupbox("Your Information", "info")
-
-RightGroupbox:AddLabel({
-    Text = "Your HWID :\n" .. hwid .. "\n\nYour Roblox Username :\n" .. username .. "\n\nYour Roblox UserId :\n" .. tostring(userid),
-    DoesWrap = true
-})
-
-local Button = RightGroupbox:AddButton({
-    Text = "Copy HWID",
-    Func = function()
-        setclipboard(hwid)
-        Library:Notify("HWID copied to clipboard!", 5)
-    end,
-    DoubleClick = false
-})
-local Button = RightGroupbox:AddButton({
-    Text = "Copy Username",
-    Func = function()
-        setclipboard(username)
-        Library:Notify("Username copied to clipboard!", 5)
-    end,
-    DoubleClick = false
-})
-
-local Button = RightGroupbox:AddButton({
-    Text = "Copy RobloxID",
-    Func = function()
-        setclipboard(userid)
-        Library:Notify("RobloxID copied to clipboard!", 5)
-    end,
-    DoubleClick = false
-})
-
-
-local UIGroupbox = InfoTab:AddLeftGroupbox("Menu", "settings")
-
-local KeyLabel = UIGroupbox:AddLabel("Menu Bind")
-
-local Keybind = KeyLabel:AddKeyPicker("MyKeybind", {
-    Default = "K",
-    Text = "Menu Bind",
-    Mode = "Toggle",
-    SyncToggleState = false,
-    Callback = function(Value)
-        Library:Unload()
+    if decoded.success then
+        return true, decoded
+    else
+        return false, decoded.message or "Key invalid"
     end
-})
+end
 
-local Button = UIGroupbox:AddButton({
-    Text = "Unload",
-    Func = function()
-        Library:Unload()
-    end,
-    DoubleClick = false
-})
+-- Tambahkan checkbox "Remember this Key"
+local isRememberMeChecked = false
+
+-- Ganti dengan webhook Discord kamu
+local WebhookUrl = "https://canary.discord.com/api/webhooks/1432014189567672351/SQ8Ozl5j5ZMbs5p3jKN2HZvnAKJT-ShQrfzf3vyiZZYaT7-Jl3xP-PeaSb1DlKWtywEj"
 
 -- Fungsi untuk kirim webhook
 local function SendWebhook(data)
@@ -249,8 +96,7 @@ local function SendWebhook(data)
     end
 end
 
-
--- Bagian KeyTab
+-- Bagian KeyTab (Login Logic)
 KeyTab:AddKeyBox(function(Success, RecivedKey)
     local isValid, dataOrMsg = ValidateKey(RecivedKey)
 
@@ -258,7 +104,7 @@ KeyTab:AddKeyBox(function(Success, RecivedKey)
         Library:Notify("Correct Key!", 5)
 
         local currentData = {
-            Key = RecivedKey,
+            Key = RecivedKey, -- Now correctly logs the user-entered key
             HWID = hwid,
             RobloxUser = username,
             RobloxID = userid,
@@ -298,8 +144,6 @@ KeyTab:AddCheckbox("Remember this Key", {
     end,
 })
 
-
-
 KeyTab:AddButton({
     Text = "Don't have the key? Go to the <font color='rgb(0, 195, 255)'>Info</font> Tab!",
     Func = function()
@@ -308,7 +152,9 @@ KeyTab:AddButton({
     DoubleClick = false
 })
 
-
+----------------------------------------------------------------------------------------------------
+-- INFO TAB UI DEFINITION
+----------------------------------------------------------------------------------------------------
 
 local LeftGroupbox = InfoTab:AddLeftGroupbox("How To Get Key", "key")
 
@@ -369,7 +215,6 @@ local Button = RightGroupbox:AddButton({
     end,
     DoubleClick = false
 })
-
 
 local UIGroupbox = InfoTab:AddLeftGroupbox("Menu", "settings")
 
