@@ -4159,7 +4159,7 @@ end)
 
 -- DISCORD BUTTON FUNCTION
 DiscordBtn.MouseButton1Click:Connect(function()
-	setclipboard("https://discord.gg/q2nhZGbKtE")
+	setclipboard("https://discord.gg/sekayhub")
 	game.StarterGui:SetCore("SendNotification", {
 		Title = "Sekay Hub",
 		Text = "Discord link copied!",
