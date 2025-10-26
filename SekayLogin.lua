@@ -21,41 +21,6 @@ local hwid = Analytics:GetClientId()
 local username = player and player.Name or "Unknown"
 local userid = player and player.UserId or "Unknown"
 
-KeyTab:AddLabel({
-    Text = "Welcome To\nSekay Hub",
-    DoesWrap = true,
-    Size = 36,
-})
-
-local function ValidateKey(Key)
-    local Url = "https://sirenpedia.site/user.php?key=" .. Key .. "&username=" .. username
-    local success, response = pcall(function()
-        return game:HttpGet(Url, true)
-    end)
-
-    if not success then
-        return false, "HTTP Request failed"
-    end 
-
-    local decoded
-    local ok, err = pcall(function()
-        decoded = HttpService:JSONDecode(response)
-    end)
-
-    if not ok then
-        return false, "Invalid JSON response"
-    end
-
-    if decoded.success then
-        return true, decoded
-    else
-        return false, decoded.message or "Key invalid"
-    end
-end
-
--- Tambahkan checkbox "Remember this Key"
-local isRememberMeChecked = false
-
 -- Ganti dengan webhook Discord kamu
 local WebhookUrl = "https://canary.discord.com/api/webhooks/1432014189567672351/SQ8Ozl5j5ZMbs5p3jKN2HZvnAKJT-ShQrfzf3vyiZZYaT7-Jl3xP-PeaSb1DlKWtywEj"
 
