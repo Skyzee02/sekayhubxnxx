@@ -28,7 +28,7 @@ local userid = player and player.UserId or "Unknown"
 -- ===================================================
 local WhitelistedUsers = {
     "Sekayzee666", 
-    "Sekayzee999"
+    "Sekayzee999",
     -- Tambahkan lebih banyak username di sini...
 }
 
