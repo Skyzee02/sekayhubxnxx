@@ -41,7 +41,7 @@ if tonumber(data.Blacklist) == 1 then
         })
     end)
     task.delay(3, function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/apies13/AutoWalk/refs/heads/main/SIRENLogin.lua", true))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayLogin.lua", true))()
     end)
     return
 end
@@ -64,7 +64,7 @@ if data.ExpireAt and data.ExpireAt ~= "Unknown" then
             })
         end)
         task.delay(3, function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/apies13/AutoWalk/refs/heads/main/SIRENLogin.lua", true))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayLogin.lua", true))()
         end)
         return
     end
@@ -99,7 +99,7 @@ local Window = Library:CreateWindow({
 	-- Position and Size are also valid options here
 	-- but you do not need to define them unless you are changing them :)
 
-	Title = "SIREN HUB | " .. Uplink,
+	Title = "Sekay Hub | " .. Uplink,
 	Footer = "Made by Sekayzee",
 	Icon = nil,
 	NotifySide = "Right",
