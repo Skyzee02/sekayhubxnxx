@@ -154,80 +154,56 @@ local function SendWebhook(data)
     end
 end
 
--- Bagian KeyTab (Login Logic)
+-- TEMPATKAN KODE INI DI DALAM SekayLogin.lua MENGGANTIKAN BLOK LOGIKA SUKSES
 KeyTab:AddKeyBox(function(Success, RecivedKey)
     local isValid, dataOrMsg = ValidateKey(RecivedKey)
 
     if isValid then
-      Library:Notify("Correct Key!", 5)
+        Library:Notify("Correct Key!", 5)
 
--- Ambil data Key secara lengkap (termasuk created_at) dari KeyWhitelist global
-local remoteKeyData = KeyWhitelist[RecivedKey]
+        local remoteKeyData = KeyWhitelist[RecivedKey]
         
--- Wajibkan created_at ada di data remote. Jika tidak, hentikan login.
-if not remoteKeyData or not remoteKeyData.created_at then
-    Library:Notify("FATAL: Key data is corrupted (missing creation time).", 7)
-    return 
-end
+        -- Cek ketersediaan data kunci dan waktu pembuatan (created_at)
+        if not remoteKeyData or not remoteKeyData.created_at then 
+            Library:Notify("FATAL: Key data is corrupted (missing creation time).", 7)
+            return 
+        end 
 
--- Waktu Awal (InitialTime) sekarang adalah created_at yang statis dari remote.
-local InitialTime = remoteKeyData.created_at 
-        
-local durationType = dataOrMsg.level -- Asumsi level sama dengan type
-local durationSeconds = DURATIONS[durationType]
+        local InitialTime = remoteKeyData.created_at
+        local durationType = remoteKeyData.type
+        local ExpireTimestamp = 0
 
-        local expire_at_str
-        local Level = dataOrMsg.level or "Unknown"
-
-        if durationType == "lifetime" or durationType == "Owner/Admin (Remote)" then
-            -- Lifetime dihitung dari InitialTime + 10 tahun
-            local farFutureTime = InitialTime + (365 * 24 * 60 * 60 * 10)
-            expire_at_str = os.date("%Y-%m-%d %H:%M:%S", farFutureTime)
-        
-        elseif durationSeconds then
-            -- Hitung kedaluwarsa DARI WAKTU PEMBUATAN (InitialTime)
-            local expireTime = InitialTime + durationSeconds
-            expire_at_str = os.date("%Y-%m-%d %H:%M:%S", expireTime)
+        if durationType == "lifetime" then
+            -- Lifetime: Atur waktu kadaluarsa jauh di masa depan (e.g., 10 tahun dari waktu pembuatan)
+            ExpireTimestamp = InitialTime + (365 * 24 * 60 * 60 * 10) 
+        elseif DURATIONS[durationType] then
+            -- Durasi normal: Tambahkan durasi ke waktu pembuatan kunci
+            ExpireTimestamp = InitialTime + DURATIONS[durationType]
         else
-            -- Tipe tidak dikenal, fallback
-            expire_at_str = os.date("%Y-%m-%d %H:%M:%S", remoteKeyData.created_at() + 3600)
-            Level = "Unknown Duration"
+            Library:Notify("Invalid Key Type Configuration.", 7)
+            return 
         end
         
-        local currentData = {
+        -- Konversi ExpireTimestamp (angka) ke format string yang bisa diproses oleh SekayMenu.lua
+        local ExpireAtString = os.date("%Y-%m-%d %H:%M:%S", ExpireTimestamp)
+
+        -- *** PENTING: SET DATA GLOBAL _G.SIREN_Data ***
+        _G.SIREN_Data = {
             Key = RecivedKey,
             HWID = hwid,
             RobloxUser = username,
             RobloxID = userid,
-            ExpireAt = expire_at_str, 
-            Level = Level,
-            Uplink = dataOrMsg.uplink or "Unknown",
-            Blacklist = dataOrMsg.blacklist or 0,
-            Message = dataOrMsg.message or "",
-            -- SIMPAN WAKTU AWAL (created_at) di file lokal untuk auto-login
-            InitialLoginTime = InitialTime 
+            ExpireAt = ExpireAtString, -- Gunakan string format tanggal yang sudah dikoreksi
+            Level = remoteKeyData.level,
+            Uplink = "V1.0",
+            Blacklist = 0,
+            Message = "Login Successfully (" .. remoteKeyData.level .. ")"
         }
 
-        _G.SIREN_Data = currentData
-
-        -- Simpan ke file JSON lokal kalau remember diaktifkan
-        if isRememberMeChecked then
-           local jsonString = HttpService:JSONEncode(currentData)
-           writefile(LOCAL_SAVE_FILE, jsonString)
-        end
-
-        SendWebhook(currentData)
-
-        task.delay(3, function()
-            Library:Unload()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayMenu.lua", true))()
-        end)
-    else
-        Library:Notify("Incorrect Key! " .. tostring(dataOrMsg), 5)
-    end
-end)
-
--- Checkbox Remember Me
+        -- Kirim webhook (pastikan fungsi SendWebhook ada)
+        SendWebhook(_G.SIREN_Data)
+        
+        -- Checkbox Remember Me
 KeyTab:AddCheckbox("Remember this Key", {
     Text = "Remember this Key",
     Tooltip = "Save your key for future sessions",
@@ -236,6 +212,19 @@ KeyTab:AddCheckbox("Remember this Key", {
         isRememberMeChecked = Value
     end,
 })
+
+        Window:Hide() -- Sembunyikan UI Login
+        task.delay(1, function()
+            Library:Unload()
+            -- Muat script menu
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayMenu.lua", true))()
+        end)
+
+    else
+        -- Login Gagal
+        Library:Notify(dataOrMsg, 5)
+    end
+end)
 
 KeyTab:AddButton({
     Text = "Don't have the key? Go to the <font color='rgb(0, 195, 255)'>Info</font> Tab!",
