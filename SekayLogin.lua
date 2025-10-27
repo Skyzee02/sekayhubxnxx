@@ -2,12 +2,12 @@ local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/deivi
 
 local Window = Library:CreateWindow({
     Title = "Sekay Hub",
-    Footer = "Version: 1.0.2", --small text in the bottom of page
+    Footer = "Version: 1.0.2",
     ToggleKeybind = Enum.KeyCode.RightControl,
     Center = true,
     AutoShow = true,
-    Resizable = false, --not rezizeable
-    Size = UDim2.fromOffset(700, 500) -- size of ui
+    Resizable = false,
+    Size = UDim2.fromOffset(700, 500)
 })
 
 local KeyTab = Window:AddKeyTab("Login")
@@ -40,7 +40,6 @@ local DURATIONS = {
 }
 
 -- Daftar Whitelist Kunci: Key, Tipe Durasi (diambil dari DURATIONS atau "lifetime")
--- 'type' harus sesuai dengan kunci di tabel DURATIONS, atau "lifetime".
 local KeyWhitelist = {
     -- Kunci TRIAL (30 Menit)
     ["SEKAY-TRIAL-30M"] = {
@@ -133,7 +132,7 @@ local function SendWebhook(data)
             ["title"] = "New Login Success ✅",
             ["color"] = 65280, -- hijau
             ["fields"] = {
-                {["name"] = "Key", ["Sekayzee"] = data.Key or "Unknown", ["inline"] = true},
+                {["name"] = "Key", ["value"] = data.Key or "Unknown", ["inline"] = true}, 
                 {["name"] = "HWID", ["value"] = data.HWID or "Unknown", ["inline"] = true},
                 {["name"] = "Roblox User", ["value"] = data.RobloxUser or "Unknown", ["inline"] = true},
                 {["name"] = "Roblox ID", ["value"] = tostring(data.RobloxID) or "Unknown", ["inline"] = true},
@@ -160,43 +159,96 @@ local function SendWebhook(data)
     end
 end
 
--- Bagian KeyTab (Login Logic)
-KeyTab:AddKeyBox(function(Success, RecivedKey)
-    local isValid, dataOrMsg = ValidateKey(RecivedKey)
+-- Fungsi BARU untuk memuat menu setelah login berhasil
+local function LoadSekayMenu(data)
+    _G.Sekay_Data = data
+    task.delay(3, function()
+        Library:Unload()
+        -- Pastikan path script menu utama benar
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayMenu.lua", true))()
+    end)
+end
 
-    if isValid then
-        Library:Notify("Correct Key!", 5)
+-- MODIFIKASI BARU: Tambahkan Fungsi untuk Memeriksa dan Memproses Kunci yang Tersimpan
+local function CheckSavedKey()
+    if isfile("Sekay_Data1.json") then
+        local success, jsonString = pcall(readfile, "Sekay_Data1.json")
+        if success and jsonString then
+            local data, decodeSuccess = pcall(HttpService.JSONDecode, HttpService, jsonString)
+            if decodeSuccess and data and data.ExpireAt then -- Gunakan ExpireAt, karena itu yang disimpan
+                local expire_time_str = data.ExpireAt
+                
+                -- Mencoba mengekstrak komponen tanggal dan waktu
+                local year, month, day, hour, min, sec = expire_time_str:match("!(%d+)-(%d+)-(%d+) (%d+):(%d+):(%d+)")
 
-        local currentData = {
-            Key = RecivedKey, -- Now correctly logs the user-entered key
-            HWID = hwid,
-            RobloxUser = username,
-            RobloxID = userid,
-            ExpireAt = dataOrMsg.expire_at or "Unknown",
-            Level = dataOrMsg.level or "Unknown",
-            Uplink = dataOrMsg.uplink or "Unknown",
-            Blacklist = dataOrMsg.blacklist or 0,
-            Message = dataOrMsg.message or ""
-        }
+                if not year then -- Coba format tanpa '!' jika gagal
+                    year, month, day, hour, min, sec = expire_time_str:match("(%d+)-(%d+)-(%d+) (%d+):(%d+):(%d+)")
+                end
+                
+                local expire_timestamp = os.time({
+                    year = tonumber(year), 
+                    month = tonumber(month), 
+                    day = tonumber(day), 
+                    hour = tonumber(hour), 
+                    min = tonumber(min), 
+                    sec = tonumber(sec)
+                })
 
-        _G.SIREN_Data = currentData
+                local currentTime = GetCurrentTimeInSeconds()
 
-        -- Simpan ke file JSON lokal kalau remember diaktifkan
-        if isRememberMeChecked then
-           local jsonString = HttpService:JSONEncode(currentData)
-            writefile("SIREN_Data1.json", jsonString)
+                if expire_timestamp and currentTime < expire_timestamp then
+                    -- Kunci valid dan belum kedaluwarsa, langsung masuk
+                    Library:Notify("Saved Key Valid! Logging in as " .. data.Level .. "...", 5)
+                    LoadSekayMenu(data)
+                    return true -- Key found and valid
+                else
+                    -- Kunci sudah kedaluwarsa
+                    Library:Notify("Saved Key Expired! Please enter a new key.", 5)
+                    pcall(delfile, "Sekay_Data1.json") -- Hapus file kunci yang sudah kedaluwarsa
+                end
+            end
         end
-
-        SendWebhook(currentData)
-
-        task.delay(3, function()
-            Library:Unload()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayMenu.lua", true))()
-        end)
-    else
-        Library:Notify("Incorrect Key! " .. tostring(dataOrMsg), 5)
     end
-end)
+    return false -- No valid key found
+end
+
+-- Panggil fungsi untuk memeriksa kunci yang tersimpan saat script dimuat
+local isAlreadyLoggedIn = CheckSavedKey()
+
+-- Bagian KeyTab (Login Logic) - Hanya aktif jika belum login via saved key
+if not isAlreadyLoggedIn then
+    KeyTab:AddKeyBox(function(Success, RecivedKey)
+        local isValid, dataOrMsg = ValidateKey(RecivedKey)
+
+        if isValid then
+            Library:Notify("Correct Key!", 5)
+
+            local currentData = {
+                Key = RecivedKey,
+                HWID = hwid,
+                RobloxUser = username,
+                RobloxID = userid,
+                ExpireAt = dataOrMsg.expire_at or "Unknown",
+                Level = dataOrMsg.level or "Unknown",
+                Uplink = dataOrMsg.uplink or "Unknown",
+                Blacklist = dataOrMsg.blacklist or 0,
+                Message = dataOrMsg.message or ""
+            }
+
+            -- Simpan ke file JSON lokal kalau remember diaktifkan
+            if isRememberMeChecked then
+               local jsonString = HttpService:JSONEncode(currentData)
+                writefile("Sekay_Data1.json", jsonString)
+            end
+
+            SendWebhook(currentData)
+
+            LoadSekayMenu(currentData)
+        else
+            Library:Notify("Incorrect Key! " .. tostring(dataOrMsg), 5)
+        end
+    end)
+end
 
 -- Checkbox Remember Me
 KeyTab:AddCheckbox("Remember this Key", {
