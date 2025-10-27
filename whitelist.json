@@ -2,32 +2,32 @@
   "keys": {
     "SEKAY-TRIAL-30M": {
       "type": "30M",
-      "level": "Trial 30 Mins"
+      "level": "Trial 30 Mins",
       "created_at": 1678886400
     },
     "SEKAY-VIP-1D": {
       "type": "1D",
-      "level": "VIP 1 Days"
+      "level": "VIP 1 Days",
       "created_at": 1761584993
     },
     "SEKAY-VIP-7D": {
       "type": "7D",
-      "level": "VIP 7 Days"
+      "level": "VIP 7 Days",
       "created_at": 1761584993
     },
     "SEKAY-VIP-30D": {
       "type": "30D",
-      "level": "VIP 30 Days"
+      "level": "VIP 30 Days",
       "created_at": 1761584993
     },
     "SEKAY-LIFETIME-VIP": {
       "type": "lifetime",
-      "level": "VIP Lifetime"
+      "level": "VIP Lifetime",
       "created_at": 1761584993
     },
     "ADMIN-MASTER-KEY": {
       "type": "lifetime",
-      "level": "Admin Access"
+      "level": "Admin Access",
       "created_at": 1761584993
     }
   }
