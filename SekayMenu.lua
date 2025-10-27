@@ -94,39 +94,6 @@ local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
 local Options = Library.Options
 local Toggles = Library.Toggles
 
--- ========================================
--- TAMBAHAN: VALIDASI EXPIRED REAL-TIME (CONTINUOUS)
--- ========================================
-if ExpireTimestamp then
-    task.spawn(function()
-        while task.wait(1) do
-            if ExpireTimestamp < os.time() then
-                -- Key telah expired saat script berjalan
-                pcall(function()
-                    game.StarterGui:SetCore("SendNotification", {
-                        Title = "Sekay Hub",
-                        Text = "Your key has expired in real-time. Unloading script!",
-                        Duration = 5
-                    })
-                end)
-                
-                -- Nonaktifkan key/script dengan meng-unload menu
-                Library:Unload()
-                
-                -- Redirect ke login
-                task.delay(3, function()
-                    loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayLogin.lua", true))()
-                end)
-
-                return -- Hentikan loop pengecekan
-            end
-        end
-    end)
-end
--- ========================================
-
-Library.ForceCheckbox = false --
-
 local Window = Library:CreateWindow({
 	-- Set Center to true if you want the menu to appear in the center
 	-- Set AutoShow to true if you want the menu to appear when it is created
