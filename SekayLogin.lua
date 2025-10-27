@@ -329,47 +329,48 @@ local Button = UIGroupbox:AddButton({
 -- [[ START: LOGIKA AUTO-LOGIN & CEK KEDALUWARSA (dengan nama file baru) ]]
 -- Fungsi untuk memuat data lokal dan memeriksa kedaluwarsa
 -- Fungsi untuk memuat data lokal dan memeriksa kedaluwarsa
+-- Fungsi untuk memuat data lokal dan memeriksa kedaluwarsa
 local function LoadAndCheckKey()
     local savedData = nil
-    -- ... (Kode untuk memuat savedData)
+    
+    -- !!! PERBAIKI: Implementasikan pembacaan file lokal di sini !!!
+    local success, content = pcall(function() return readfile(LOCAL_SAVE_FILE) end)
+    if success and content and HttpService then
+        pcall(function() savedData = HttpService:JSONDecode(content) end)
+    end
+    -- !!! END PERBAIKI !!!
 
     if savedData then
         local currentTime = GetCurrentTimeInSeconds()
         local expire_time = 0
         local initial_login_time = savedData.InitialLoginTime -- Ambil waktu awal login
 
-        local durationType = savedData.Level -- Asumsi Level = Type (sesuai data local saat ini)
+        local durationType = savedData.Level or "Unknown" -- Ambil Level yang tersimpan (diasumsikan = type)
         local durationSeconds = DURATIONS[durationType]
 
-        if durationType == "Owner/Admin (Remote)" then -- Admin/Owner dianggap lifetime
-             local farFutureTime = initial_login_time + (365 * 24 * 60 * 60 * 10)
-             expire_time = farFutureTime
-        elseif durationType == "lifetime" then
+        -- Logika Perhitungan Expire Time (sudah benar)
+        if durationType == "Owner/Admin (Remote)" or durationType == "lifetime" then 
+             -- Owner/Admin atau lifetime dianggap lifetime
              local farFutureTime = initial_login_time + (365 * 24 * 60 * 60 * 10)
              expire_time = farFutureTime
         elseif durationSeconds then
             -- HITUNG ULANG KEDALUWARSA DARI INITIAL_LOGIN_TIME YANG TERSIMPAN
             expire_time = initial_login_time + durationSeconds
         else
-            -- Fallback, jika type tidak dikenal, gunakan expire_at lama untuk cek
-            local year, month, day, hour, min, sec = savedData.ExpireAt:match("^(%d+)-(%d+)-(%d+) (%d+):(%d+):(%d+)$")
+            -- Fallback jika tipe tidak dikenal. Coba gunakan format ExpireAt lama (jika ada)
+            local year, month, day, hour, min, sec = tostring(savedData.ExpireAt or ""):match("^(%d+)-(%d+)-(%d+) (%d+):(%d+):(%d+)$")
             if year then
                 expire_time = os.time({year = year, month = month, day = day, hour = hour, min = min, sec = sec})
             else
-                expire_time = 0 -- Jika format lama gagal
+                expire_time = 0 -- Jika format lama gagal atau tidak ada InitialLoginTime
             end
         end
         
-        -- Cek apakah kunci sudah kedaluwarsa
+        -- HANYA SATU KALI Cek apakah kunci sudah kedaluwarsa
         if expire_time > currentTime then
-            -- Kunci masih valid. Update ExpireAt di savedData (opsional)
-            savedData.ExpireAt = os.date("%Y-%m-%d %H:%M:%S", expire_time) 
-
-        local currentTime = GetCurrentTimeInSeconds()
-        
-        -- Cek apakah kunci sudah kedaluwarsa
-        if expire_time > currentTime then
-            -- Kunci masih valid, otomatis login dengan data yang tersimpan
+            -- Kunci masih valid.
+            savedData.ExpireAt = os.date("%Y-%m-%d %H:%M:%S", expire_time) -- Update ExpireAt di savedData
+            
             print("Auto-Login: Key still valid until " .. savedData.ExpireAt)
             Library:Notify("Auto-Login Success! Level: " .. savedData.Level, 5)
 
