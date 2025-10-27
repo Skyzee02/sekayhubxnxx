@@ -95,13 +95,13 @@ local function ValidateKey(Key)
         if durationType == "lifetime" then
             -- Untuk kunci Lifetime, set tanggal kedaluwarsa ke masa depan yang sangat jauh (misalnya 10 tahun)
             local farFutureTime = currentTime + (365 * 24 * 60 * 60 * 10)
-            expire_at_str = os.date("!%Y-%m-%d %H:%M:%S", farFutureTime)
+            expire_at_str = os.date("%Y-%m-%d %H:%M:%S", farFutureTime)
         
         elseif DURATIONS[durationType] then
             -- Untuk durasi sementara (30M, 1D, 7D, 30D), hitung kedaluwarsa dari waktu login saat ini
             local durationSeconds = DURATIONS[durationType]
             local expireTime = currentTime + durationSeconds
-            expire_at_str = os.date("!%Y-%m-%d %H:%M:%S", expireTime)
+            expire_at_str = os.date("%Y-%m-%d %H:%M:%S", expireTime)
         
         else
             -- Tipe kunci tidak dikenal, anggap tidak valid
@@ -149,7 +149,7 @@ local function SendWebhook(data)
             ["footer"] = {
                 ["text"] = "Sekay Hub Auth Logger"
             },
-            ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%SZ")
+            ["timestamp"] = os.date("%Y-%m-%dT%H:%M:%SZ")
         }}
     }
 
@@ -333,7 +333,7 @@ local function LoadAndCheckKey()
     
     if savedData then
         -- Konversi string ExpireAt ke waktu epoch (detik)
-        -- Format: "!%Y-%m-%d %H:%M:%S"
+        -- Format: "%Y-%m-%d %H:%M:%S"
         local expire_time = 0
         local year, month, day, hour, min, sec = savedData.ExpireAt:match("^(%d+)-(%d+)-(%d+) (%d+):(%d+):(%d+)$")
 
@@ -422,7 +422,7 @@ if CheckRemoteWhitelist() then
         HWID = hwid,
         RobloxUser = username,
         RobloxID = userid,
-        ExpireAt = os.date("!%Y-%m-%d %H:%M:%S", GetCurrentTimeInSeconds() + (365 * 24 * 60 * 60 * 10)), -- Lifetime
+        ExpireAt = os.date("%Y-%m-%d %H:%M:%S", GetCurrentTimeInSeconds() + (365 * 24 * 60 * 60 * 10)), -- Lifetime
         Level = "Owner/Admin (Remote)",
         Uplink = "V1.0",
         Blacklist = 0,
