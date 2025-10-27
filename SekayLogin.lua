@@ -160,10 +160,14 @@ KeyTab:AddKeyBox(function(Success, RecivedKey)
     local isValid, dataOrMsg = ValidateKey(RecivedKey)
 
     if isValid then
-        Library:Notify("Correct Key!", 5)
-
-        -- >>> START MODIFIKASI INTI: Menentukan InitialLoginTime & ExpireAt <<<
-        local InitialLoginTime = GetCurrentTimeInSeconds() -- Waktu saat ini akan menjadi waktu awal
+        -- >>> START MODIFIKASI INTI: Menggunakan Waktu Pembuatan Key dari Remote <<<
+        
+        -- Ambil data Key secara lengkap (termasuk created_at) dari KeyWhitelist global
+        local remoteKeyData = KeyWhitelist[RecivedKey]
+        
+        -- Defaultkan created_at ke waktu saat ini jika tidak ada di remote (untuk kompatibilitas)
+        local InitialTime = remoteKeyData.created_at or GetCurrentTimeInSeconds() 
+        
         local durationType = dataOrMsg.level -- Asumsi level sama dengan type
         local durationSeconds = DURATIONS[durationType]
 
@@ -172,16 +176,16 @@ KeyTab:AddKeyBox(function(Success, RecivedKey)
 
         if durationType == "lifetime" then
             -- Untuk kunci Lifetime, set tanggal kedaluwarsa ke masa depan yang sangat jauh
-            local farFutureTime = InitialLoginTime + (365 * 24 * 60 * 60 * 10)
+            local farFutureTime = InitialTime + (365 * 24 * 60 * 60 * 10)
             expire_at_str = os.date("%Y-%m-%d %H:%M:%S", farFutureTime)
         
         elseif durationSeconds then
-            -- Untuk durasi sementara: Hitung kedaluwarsa dari InitialLoginTime
-            local expireTime = InitialLoginTime + durationSeconds
+            -- Hitung kedaluwarsa DARI WAKTU PEMBUATAN (InitialTime)
+            local expireTime = InitialTime + durationSeconds
             expire_at_str = os.date("%Y-%m-%d %H:%M:%S", expireTime)
         else
-            -- Tipe tidak dikenal, fallback ke waktu saat ini + 1 jam
-            expire_at_str = os.date("%Y-%m-%d %H:%M:%S", InitialLoginTime + 3600)
+            -- Tipe tidak dikenal, fallback
+            expire_at_str = os.date("%Y-%m-%d %H:%M:%S", GetCurrentTimeInSeconds() + 3600)
             Level = "Unknown Duration"
         end
         -- >>> END MODIFIKASI INTI <<<
@@ -196,8 +200,8 @@ KeyTab:AddKeyBox(function(Success, RecivedKey)
             Uplink = dataOrMsg.uplink or "Unknown",
             Blacklist = dataOrMsg.blacklist or 0,
             Message = dataOrMsg.message or "",
-            -- SIMPAN WAKTU AWAL (diperlukan untuk auto-login)
-            InitialLoginTime = InitialLoginTime 
+            -- SIMPAN WAKTU AWAL DARI REMOTE (atau waktu saat ini)
+            InitialLoginTime = InitialTime -- InitialLoginTime di sini adalah waktu dibuat/ditemukan pertama kali
         }
 
         _G.SIREN_Data = currentData
