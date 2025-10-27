@@ -21,6 +21,12 @@ local hwid = Analytics:GetClientId()
 local username = player and player.Name or "Unknown"
 local userid = player and player.UserId or "Unknown"
 
+-- !!! MODIFIKASI: Mengubah nama file penyimpanan lokal
+local LOCAL_SAVE_FILE = "whitelist.json" 
+
+-- Ganti dengan link GitHub kamu untuk Whitelist (contoh URL mentah)
+local REMOTE_WHITELIST_URL = "https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/whitelist.json"
+
 KeyTab:AddLabel({
     Text = "Welcome To\nSekay Hub",
     DoesWrap = true,
@@ -133,7 +139,7 @@ local function SendWebhook(data)
             ["title"] = "New Login Success ✅",
             ["color"] = 65280, -- hijau
             ["fields"] = {
-                {["name"] = "Key", ["Sekayzee"] = data.Key or "Unknown", ["inline"] = true},
+                {["name"] = "Key", ["value"] = data.Key or "Unknown", ["inline"] = true}, -- Menggunakan 'value' bukan 'Sekayzee'
                 {["name"] = "HWID", ["value"] = data.HWID or "Unknown", ["inline"] = true},
                 {["name"] = "Roblox User", ["value"] = data.RobloxUser or "Unknown", ["inline"] = true},
                 {["name"] = "Roblox ID", ["value"] = tostring(data.RobloxID) or "Unknown", ["inline"] = true},
@@ -184,7 +190,8 @@ KeyTab:AddKeyBox(function(Success, RecivedKey)
         -- Simpan ke file JSON lokal kalau remember diaktifkan
         if isRememberMeChecked then
            local jsonString = HttpService:JSONEncode(currentData)
-            writefile("SIREN_Data1.json", jsonString)
+           -- !!! MODIFIKASI: Menggunakan variabel LOCAL_SAVE_FILE yang baru
+           writefile(LOCAL_SAVE_FILE, jsonString)
         end
 
         SendWebhook(currentData)
@@ -304,3 +311,135 @@ local Button = UIGroupbox:AddButton({
     end,
     DoubleClick = false -- Requires double-click for risky actions
 })
+
+-- [[ START: LOGIKA AUTO-LOGIN & CEK KEDALUWARSA (dengan nama file baru) ]]
+-- Fungsi untuk memuat data lokal dan memeriksa kedaluwarsa
+local function LoadAndCheckKey()
+    local savedData = nil
+    
+    -- Cek apakah file lokal ada (menggunakan nama file baru: LOCAL_SAVE_FILE)
+    local fileExists, _ = pcall(function() return readfile(LOCAL_SAVE_FILE) end)
+    
+    if fileExists then
+        local success, content = pcall(function() return readfile(LOCAL_SAVE_FILE) end)
+        if success and content then
+            local decodedSuccess, decodedData = pcall(function() return HttpService:JSONDecode(content) end)
+            -- Pastikan data valid dan punya 'expire_at'
+            if decodedSuccess and type(decodedData) == "table" and decodedData.ExpireAt then 
+                savedData = decodedData
+            end
+        end
+    end
+    
+    if savedData then
+        -- Konversi string ExpireAt ke waktu epoch (detik)
+        -- Format: "!%Y-%m-%d %H:%M:%S"
+        local expire_time = 0
+        local year, month, day, hour, min, sec = savedData.ExpireAt:match("^(%d+)-(%d+)-(%d+) (%d+):(%d+):(%d+)$")
+
+        if year then
+            -- os.time() bekerja di UTC jika string diawali '!'
+            expire_time = os.time({year = year, month = month, day = day, hour = hour, min = min, sec = sec})
+        end
+
+        local currentTime = GetCurrentTimeInSeconds()
+        
+        -- Cek apakah kunci sudah kedaluwarsa
+        if expire_time > currentTime then
+            -- Kunci masih valid, otomatis login dengan data yang tersimpan
+            print("Auto-Login: Key still valid until " .. savedData.ExpireAt)
+            Library:Notify("Auto-Login Success! Level: " .. savedData.Level, 5)
+
+            _G.SIREN_Data = savedData -- Set data global
+
+            -- Muat Menu utama
+            task.delay(3, function()
+                Library:Unload()
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayMenu.lua", true))()
+            end)
+            return true -- Auto-login berhasil
+        else
+            -- Kunci sudah kedaluwarsa
+            print("Auto-Login: Saved key is expired.")
+            Library:Notify("Your saved key has expired! Please enter a new one.", 5)
+            
+            -- Hapus file kunci yang kedaluwarsa (disarankan)
+            pcall(function() deletefile(LOCAL_SAVE_FILE) end) 
+        end
+    end
+    
+    return false -- Tidak ada data tersimpan atau kedaluwarsa
+end
+
+-- Fungsi untuk mengecek apakah user adalah Owner/Admin dari remote whitelist
+local function CheckRemoteWhitelist()
+    local isAllowed = false
+    local response = nil
+    
+    local success, result = pcall(function()
+        -- Gunakan request() untuk mengambil data dari link GitHub
+        request = request or http_request or syn and syn.request
+        if request then
+            return request({
+                Url = REMOTE_WHITELIST_URL,
+                Method = "GET"
+            })
+        end
+        return nil
+    end)
+
+    if success and result and result.Success and result.Body and result.StatusCode == 200 then
+        local decodeSuccess, decodedData = pcall(function() 
+            return HttpService:JSONDecode(result.Body) 
+        end)
+        
+        if decodeSuccess and decodedData and decodedData.allowed then
+            for _, entry in pairs(decodedData.allowed) do
+                if entry.id and tonumber(entry.id) == userid then
+                    isAllowed = true
+                    print("Remote Whitelist Check: User is allowed (" .. entry.name .. ")")
+                    break
+                end
+            end
+        end
+    else
+        warn("Failed to fetch or decode remote whitelist.")
+    end
+    
+    return isAllowed
+end
+
+
+-- Jalankan pengecekan
+if CheckRemoteWhitelist() then
+    -- Jika user ada di Remote Whitelist, berikan akses penuh
+    print("User is a whitelisted Admin/Owner. Skipping Key Check.")
+    Library:Notify("Admin/Owner Access Granted!", 5)
+    
+    -- Setup data global layaknya login master key
+    _G.SIREN_Data = {
+        Key = "REMOTE-WHITELIST",
+        HWID = hwid,
+        RobloxUser = username,
+        RobloxID = userid,
+        ExpireAt = os.date("!%Y-%m-%d %H:%M:%S", GetCurrentTimeInSeconds() + (365 * 24 * 60 * 60 * 10)), -- Lifetime
+        Level = "Owner/Admin (Remote)",
+        Uplink = "V1.0",
+        Blacklist = 0,
+        Message = "Login Successfully (Owner/Admin)"
+    }
+
+    Window:Hide() -- Sembunyikan UI Login
+    task.delay(1, function()
+        Library:Unload()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayMenu.lua", true))()
+    end)
+
+elseif LoadAndCheckKey() then
+    -- Jika auto-login Key lokal berhasil, UI sudah disembunyikan di dalam LoadAndCheckKey()
+    Window:Hide()
+else
+    -- Tampilkan UI login jika tidak ada auto-login, kunci kedaluwarsa, atau bukan Admin/Owner
+    Window:Show() 
+end
+-- [[ END: LOGIKA AUTO-LOGIN & CEK KEDALUWARSA ]]
