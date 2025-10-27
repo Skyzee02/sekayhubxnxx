@@ -1,11 +1,11 @@
 -- example script by https://github.com/mstudio45/LinoriaLib/blob/main/Example.lua and modified by deivid
 -- You can suggest changes with a pull request or something
 
-local data = _G.SekayHub or {}
+local data = _G.SIREN_Data or {}
 local fileData = nil
 
-if isfile("SekayHub1.json") then
-    local success, result = pcall(readfile, "SekayHub1.json")
+if isfile("SIREN_Data1.json") then
+    local success, result = pcall(readfile, "SIREN_Data1.json")
     if success and result then
         local jsonSuccess, decodedData = pcall(function()
             return game:GetService("HttpService"):JSONDecode(result)
@@ -260,9 +260,9 @@ local Button = LeftGroupBox:AddButton({
         print("Logged out")
 
         -- Hapus semua data session
-        _G.SekayHub = nil
-        if isfile("SekayHub1.json") then
-            delfile("SekayHub1.json")
+        _G.SIREN_Data = nil
+        if isfile("SIREN_Data1.json") then
+            delfile("SIREN_Data1.json")
         end
 
         -- Notifikasi

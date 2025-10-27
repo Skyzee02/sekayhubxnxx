@@ -26,7 +26,6 @@ local LOCAL_SAVE_FILE = "whitelist.json"
 
 -- Ganti dengan link GitHub kamu untuk Whitelist (contoh URL mentah)
 local REMOTE_WHITELIST_URL = "https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/whitelist.json"
-  game:HttpGet(REMOTE_WHITELIST_URL, true)
 
 -- Variabel global lokal untuk menyimpan data KeyWhitelist yang dimuat dari REMOTE_WHITELIST_URL
 local KeyWhitelist = {} 
@@ -86,7 +85,6 @@ end
 -- -----------------------------------------------------------
 
 -- MODIFIED: Implements a local whitelist check supporting multiple expiry durations and Lifetime.
--- MODIFIED: Implements a local whitelist check supporting multiple expiry durations and Lifetime.
 local function ValidateKey(Key)
     -- Menggunakan KeyWhitelist yang sudah diisi dari FetchKeyWhitelist()
     local keyData = KeyWhitelist[Key]
@@ -95,8 +93,6 @@ local function ValidateKey(Key)
         local expire_at_str
         local currentTime = GetCurrentTimeInSeconds()
         local durationType = keyData.type
-        -- !!! MODIFIKASI: Ambil waktu pembuatan kunci dari whitelist, default ke waktu saat ini jika tidak ada.
-        local startTime = keyData.created_at or currentTime 
 
         if durationType == "lifetime" then
             -- Untuk kunci Lifetime, set tanggal kedaluwarsa ke masa depan yang sangat jauh (misalnya 10 tahun)
@@ -104,15 +100,10 @@ local function ValidateKey(Key)
             expire_at_str = os.date("%Y-%m-%d %H:%M:%S", farFutureTime)
         
         elseif DURATIONS[durationType] then
-            -- MODIFIKASI: Hitung kedaluwarsa dari waktu yang tersimpan di created_at (startTime)
+            -- Untuk durasi sementara (30M, 1D, 7D, 30D), hitung kedaluwarsa dari waktu login saat ini
             local durationSeconds = DURATIONS[durationType]
-            local expireTime = startTime + durationSeconds -- <--- DIHITUNG DARI WAKTU START
+            local expireTime = currentTime + durationSeconds
             expire_at_str = os.date("%Y-%m-%d %H:%M:%S", expireTime)
-
-            -- Tambahkan pengecekan apakah kunci sudah kedaluwarsa (berdasarkan created_at + duration)
-            if expireTime <= currentTime then
-                return false, "Key is expired based on its creation time."
-            end
         
         else
             -- Tipe kunci tidak dikenal, anggap tidak valid
@@ -122,7 +113,7 @@ local function ValidateKey(Key)
         local response_data = {
             key = Key,
             success = true,
-            Expire_At = expire_at_str,
+            expire_at = expire_at_str,
             level = keyData.level,
             uplink = "V1.0",
             blacklist = 0,
@@ -206,9 +197,9 @@ KeyTab:AddKeyBox(function(Success, RecivedKey)
         end
 
         SendWebhook(currentData)
--- Beri waktu tunda yang sangat singkat (misalnya 1 detik) untuk memastikan notifikasi "Correct Key!" sempat terlihat.
-        task.delay(1, function()
-            -- Hapus Library:Unload() untuk memastikan skrip utama tetap berjalan dan dapat memuat menu baru.
+
+        task.delay(3, function()
+            Library:Unload()
             loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayMenu.lua", true))()
         end)
     else
@@ -364,8 +355,8 @@ local function LoadAndCheckKey()
             _G.SIREN_Data = savedData -- Set data global
 
             -- Muat Menu utama
-            task.delay(1, function()
-                Window:Destroy() -- Hancurkan UI login yang lama
+            task.delay(3, function()
+                Library:Unload()
                 loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayMenu.lua", true))()
             end)
             return true -- Auto-login berhasil
@@ -448,8 +439,9 @@ if CheckRemoteWhitelist() then
         Message = "Login Successfully (Owner/Admin)"
     }
 
-    Window:Destroy() -- Hancurkan UI Login
+    Window:Hide() -- Sembunyikan UI Login
     task.delay(1, function()
+        Library:Unload()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayMenu.lua", true))()
     end)
 
