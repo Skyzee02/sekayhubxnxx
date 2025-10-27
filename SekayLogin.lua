@@ -34,11 +34,11 @@ local function ValidateKey(Key)
     local mock_data = {
         key = "Sekayzee",
         success = true,
-        expire_at = "2099-12-31 23:59:59", -- Mock expiration date
+        expire_at = "2025-10-27 16:30:00", -- Mock expiration date
         status = "VIP Lifetime",          -- Mock status/level
         uplink = "V1.0",
         blacklist = 0,
-        message = "Login Bypassed Successfully"
+        message = "Login Successfully"
     }
     return true, mock_data
 end
