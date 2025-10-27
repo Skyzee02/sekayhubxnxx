@@ -27,20 +27,96 @@ KeyTab:AddLabel({
     Size = 36,
 })
 
--- LOGICAL FIX #1: The ValidateKey function now uses the key provided by the user (the 'Key' parameter)
--- Modified to bypass key validation and instantly return success.
-local function ValidateKey(Key)
-    -- The key is now ignored, and we return a successful response object.
-    local mock_data = {
-        key = "Sekayzee",
-        success = true,
-        expire_at = "2025-10-27 16:23:00", -- Mock expiration date
-        status = "VIP 1 Day",          -- Mock status/level
-        uplink = "V1.0",
-        blacklist = 0,
-        message = "Login Successfully"
+local function GetCurrentTimeInSeconds()
+    return os.time()
+end
+
+-- Definisikan Durasi dalam Detik untuk setiap Tipe Akses
+local DURATIONS = {
+    ["30M"] = 30 * 60,                -- 30 minutes
+    ["1D"] = 24 * 60 * 60,            -- 1 day
+    ["7D"] = 7 * 24 * 60 * 60,        -- 7 days
+    ["30D"] = 30 * 24 * 60 * 60,      -- 30 days (Approximate)
+}
+
+-- Daftar Whitelist Kunci: Key, Tipe Durasi (diambil dari DURATIONS atau "lifetime")
+-- 'type' harus sesuai dengan kunci di tabel DURATIONS, atau "lifetime".
+local KeyWhitelist = {
+    -- Kunci TRIAL (30 Menit)
+    ["SEKAY-TRIAL-30M"] = {
+        type = "30M",
+        level = "Trial 30 Mins"
+    },
+
+    -- Kunci 1 HARI
+    ["SEKAY-VIP-1D"] = {
+        type = "1D",
+        level = "VIP 1 Day"
+    },
+
+    -- Kunci 7 HARI
+    ["SEKAY-VIP-7D"] = {
+        type = "7D",
+        level = "VIP 7 Days"
+    },
+    
+    -- Kunci 30 HARI
+    ["SEKAY-VIP-30D"] = {
+        type = "30D",
+        level = "VIP 30 Days"
+    },
+    
+    -- Kunci LIFETIME
+    ["SEKAY-LIFETIME-VIP"] = {
+        type = "lifetime",
+        level = "VIP Lifetime"
+    },
+    ["ADMIN-MASTER-KEY"] = {
+        type = "lifetime",
+        level = "Admin Access"
     }
-    return true, mock_data
+}
+
+-- MODIFIED: Implements a local whitelist check supporting multiple expiry durations and Lifetime.
+local function ValidateKey(Key)
+    local keyData = KeyWhitelist[Key]
+    
+    if keyData then
+        local expire_at_str
+        local currentTime = GetCurrentTimeInSeconds()
+        local durationType = keyData.type
+
+        if durationType == "lifetime" then
+            -- Untuk kunci Lifetime, set tanggal kedaluwarsa ke masa depan yang sangat jauh (misalnya 10 tahun)
+            local farFutureTime = currentTime + (365 * 24 * 60 * 60 * 10)
+            expire_at_str = os.date("!%Y-%m-%d %H:%M:%S", farFutureTime)
+        
+        elseif DURATIONS[durationType] then
+            -- Untuk durasi sementara (30M, 1D, 7D, 30D), hitung kedaluwarsa dari waktu login saat ini
+            local durationSeconds = DURATIONS[durationType]
+            local expireTime = currentTime + durationSeconds
+            expire_at_str = os.date("!%Y-%m-%d %H:%M:%S", expireTime)
+        
+        else
+            -- Tipe kunci tidak dikenal, anggap tidak valid
+            return false, "Invalid Key Type Configuration. Check KeyWhitelist table."
+        end
+
+        local response_data = {
+            key = Key,
+            success = true,
+            expire_at = expire_at_str,
+            level = keyData.level,
+            uplink = "V1.0",
+            blacklist = 0,
+            message = "Login Successfully (" .. keyData.level .. ")"
+        }
+        
+        return true, response_data
+    else
+        -- Kunci tidak ditemukan di whitelist
+        return false, "Key Not Found or Invalid."
+    end
 end
 
 -- Tambahkan checkbox "Remember this Key"
@@ -97,7 +173,7 @@ KeyTab:AddKeyBox(function(Success, RecivedKey)
             RobloxUser = username,
             RobloxID = userid,
             ExpireAt = dataOrMsg.expire_at or "Unknown",
-            Level = dataOrMsg.status or "Unknown",
+            Level = dataOrMsg.level or "Unknown",
             Uplink = dataOrMsg.uplink or "Unknown",
             Blacklist = dataOrMsg.blacklist or 0,
             Message = dataOrMsg.message or ""
