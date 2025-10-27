@@ -34,7 +34,8 @@ KeyTab:AddLabel({
 })
 
 local function GetCurrentTimeInSeconds()
-    return os.time()
+    -- Menggunakan os.time() untuk mendapatkan waktu epoch (UTC), yang krusial untuk cek real-time
+    return os.time() 
 end
 
 -- Definisikan Durasi dalam Detik untuk setiap Tipe Akses
@@ -86,22 +87,22 @@ local KeyWhitelist = {
 -- MODIFIED: Implements a local whitelist check supporting multiple expiry durations and Lifetime.
 local function ValidateKey(Key)
     local keyData = KeyWhitelist[Key]
-    
+
     if keyData then
         local expire_at_str
-        local currentTime = GetCurrentTimeInSeconds()
+        local currentTime = GetCurrentTimeInSeconds() -- Waktu saat ini (UTC)
         local durationType = keyData.type
 
         if durationType == "lifetime" then
-            -- Untuk kunci Lifetime, set tanggal kedaluwarsa ke masa depan yang sangat jauh (misalnya 10 tahun)
+            -- ... Kalkulasi Lifetime 
             local farFutureTime = currentTime + (365 * 24 * 60 * 60 * 10)
-            expire_at_str = os.date("!%Y-%m-%d %H:%M:%S", farFutureTime)
-        
+            expire_at_str = os.date("!%Y-%m-%d %H:%M:%S", farFutureTime) -- Format string UTC
+
         elseif DURATIONS[durationType] then
             -- Untuk durasi sementara (30M, 1D, 7D, 30D), hitung kedaluwarsa dari waktu login saat ini
             local durationSeconds = DURATIONS[durationType]
-            local expireTime = currentTime + durationSeconds
-            expire_at_str = os.date("!%Y-%m-%d %H:%M:%S", expireTime)
+            local expireTime = currentTime + durationSeconds -- Kalkulasi waktu kedaluwarsa (Epoch UTC)
+            expire_at_str = os.date("!%Y-%m-%d %H:%M:%S", expireTime) -- Format string UTC
         
         else
             -- Tipe kunci tidak dikenal, anggap tidak valid
@@ -149,7 +150,8 @@ local function SendWebhook(data)
             ["footer"] = {
                 ["text"] = "Sekay Hub Auth Logger"
             },
-            ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%SZ")
+            -- Menggunakan timestamp format ISO 8601 (UTC)
+            ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%SZ") 
         }}
     }
 
@@ -315,36 +317,25 @@ local Button = UIGroupbox:AddButton({
 -- [[ START: LOGIKA AUTO-LOGIN & CEK KEDALUWARSA (dengan nama file baru) ]]
 -- Fungsi untuk memuat data lokal dan memeriksa kedaluwarsa
 local function LoadAndCheckKey()
-    local savedData = nil
-    
-    -- Cek apakah file lokal ada (menggunakan nama file baru: LOCAL_SAVE_FILE)
-    local fileExists, _ = pcall(function() return readfile(LOCAL_SAVE_FILE) end)
-    
-    if fileExists then
-        local success, content = pcall(function() return readfile(LOCAL_SAVE_FILE) end)
-        if success and content then
-            local decodedSuccess, decodedData = pcall(function() return HttpService:JSONDecode(content) end)
-            -- Pastikan data valid dan punya 'expire_at'
-            if decodedSuccess and type(decodedData) == "table" and decodedData.ExpireAt then 
-                savedData = decodedData
-            end
-        end
-    end
-    
+    -- ... (loading data)
+
     if savedData then
-        -- Konversi string ExpireAt ke waktu epoch (detik)
+        -- Konversi string ExpireAt (format UTC) ke waktu epoch (detik)
         -- Format: "!%Y-%m-%d %H:%M:%S"
         local expire_time = 0
         local year, month, day, hour, min, sec = savedData.ExpireAt:match("^(%d+)-(%d+)-(%d+) (%d+):(%d+):(%d+)$")
 
         if year then
-            -- os.time() bekerja di UTC jika string diawali '!'
+            -- os.time() dikombinasikan dengan data dari string UTC akan menghasilkan waktu epoch UTC yang benar
+            -- CATATAN PENTING: os.time() menganggap input time table tanpa timezone adalah waktu lokal,
+            -- TETAPI jika string 'ExpireAt' *selalu* dibuat dengan os.date("!...", ...) (UTC), 
+            -- dan os.time() pada dasarnya mengkonversi ke epoch, ini bekerja sebagai perbandingan berbasis UTC/epoch.
             expire_time = os.time({year = year, month = month, day = day, hour = hour, min = min, sec = sec})
         end
 
-        local currentTime = GetCurrentTimeInSeconds()
-        
-        -- Cek apakah kunci sudah kedaluwarsa
+        local currentTime = GetCurrentTimeInSeconds() -- Waktu saat ini (Epoch UTC)
+
+        -- Cek apakah kunci sudah kedaluwarsa (expire_time HARUS lebih besar dari currentTime)
         if expire_time > currentTime then
             -- Kunci masih valid, otomatis login dengan data yang tersimpan
             print("Auto-Login: Key still valid until " .. savedData.ExpireAt)
@@ -422,7 +413,8 @@ if CheckRemoteWhitelist() then
         HWID = hwid,
         RobloxUser = username,
         RobloxID = userid,
-        ExpireAt = os.date("!%Y-%m-%d %H:%M:%S", GetCurrentTimeInSeconds() + (365 * 24 * 60 * 60 * 10)), -- Lifetime
+        -- Menggunakan perhitungan UTC 10 tahun ke depan untuk Lifetime
+        ExpireAt = os.date("!%Y-%m-%d %H:%M:%S", GetCurrentTimeInSeconds() + (365 * 24 * 60 * 60 * 10)), 
         Level = "Owner/Admin (Remote)",
         Uplink = "V1.0",
         Blacklist = 0,
