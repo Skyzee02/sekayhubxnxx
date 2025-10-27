@@ -45,44 +45,6 @@ local DURATIONS = {
     ["30D"] = 30 * 24 * 60 * 60,      -- 30 days (Approximate)
 }
 
--- Daftar Whitelist Kunci: Key, Tipe Durasi (diambil dari DURATIONS atau "lifetime")
--- 'type' harus sesuai dengan kunci di tabel DURATIONS, atau "lifetime".
-local KeyWhitelist = {
-    -- Kunci TRIAL (30 Menit)
-    ["SEKAY-TRIAL-30M"] = {
-        type = "30M",
-        level = "Trial 30 Mins"
-    },
-
-    -- Kunci 1 HARI
-    ["SEKAY-VIP-1D"] = {
-        type = "1D",
-        level = "VIP 1 Day"
-    },
-
-    -- Kunci 7 HARI
-    ["SEKAY-VIP-7D"] = {
-        type = "7D",
-        level = "VIP 7 Days"
-    },
-    
-    -- Kunci 30 HARI
-    ["SEKAY-VIP-30D"] = {
-        type = "30D",
-        level = "VIP 30 Days"
-    },
-    
-    -- Kunci LIFETIME
-    ["SEKAY-LIFETIME-VIP"] = {
-        type = "lifetime",
-        level = "VIP Lifetime"
-    },
-    ["ADMIN-MASTER-KEY"] = {
-        type = "lifetime",
-        level = "Admin Access"
-    }
-}
-
 -- MODIFIED: Implements a local whitelist check supporting multiple expiry durations and Lifetime.
 local function ValidateKey(Key)
     local keyData = KeyWhitelist[Key]
