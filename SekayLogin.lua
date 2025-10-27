@@ -27,6 +27,9 @@ local LOCAL_SAVE_FILE = "whitelist.json"
 -- Ganti dengan link GitHub kamu untuk Whitelist (contoh URL mentah)
 local REMOTE_WHITELIST_URL = "https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/whitelist.json"
 
+-- Variabel global lokal untuk menyimpan data KeyWhitelist yang dimuat dari REMOTE_WHITELIST_URL
+local KeyWhitelist = {} 
+
 KeyTab:AddLabel({
     Text = "Welcome To\nSekay Hub",
     DoesWrap = true,
@@ -45,8 +48,45 @@ local DURATIONS = {
     ["30D"] = 30 * 24 * 60 * 60,      -- 30 days (Approximate)
 }
 
+-- -----------------------------------------------------------
+-- !!! START MODIFIKASI: FUNGSI UNTUK MEMUAT KEYWHITELIST DARI URL
+-- -----------------------------------------------------------
+local function FetchKeyWhitelist()
+    print("Fetching KeyWhitelist from remote URL: " .. REMOTE_WHITELIST_URL)
+    local success, result = pcall(function()
+        request = request or http_request or syn and syn.request
+        if request then
+            return request({
+                Url = REMOTE_WHITELIST_URL,
+                Method = "GET"
+            })
+        end
+        return nil
+    end)
+
+    if success and result and result.Success and result.Body and result.StatusCode == 200 then
+        local decodeSuccess, decodedData = pcall(function() 
+            return HttpService:JSONDecode(result.Body) 
+        end)
+        
+        if decodeSuccess and decodedData and decodedData.keys then
+            -- Set KeyWhitelist ke tabel 'keys' yang diambil
+            KeyWhitelist = decodedData.keys
+            print("Successfully loaded " .. tostring(#KeyWhitelist) .. " keys from remote.")
+            return true
+        end
+    end
+    
+    warn("FATAL: Failed to fetch or decode KeyWhitelist from remote URL.")
+    return false
+end
+-- -----------------------------------------------------------
+-- !!! END MODIFIKASI
+-- -----------------------------------------------------------
+
 -- MODIFIED: Implements a local whitelist check supporting multiple expiry durations and Lifetime.
 local function ValidateKey(Key)
+    -- Menggunakan KeyWhitelist yang sudah diisi dari FetchKeyWhitelist()
     local keyData = KeyWhitelist[Key]
     
     if keyData then
@@ -67,7 +107,7 @@ local function ValidateKey(Key)
         
         else
             -- Tipe kunci tidak dikenal, anggap tidak valid
-            return false, "Invalid Key Type Configuration. Check KeyWhitelist table."
+            return false, "Invalid Key Type Configuration. Check remote whitelist.json structure."
         end
 
         local response_data = {
@@ -335,15 +375,19 @@ end
 
 -- Fungsi untuk mengecek apakah user adalah Owner/Admin dari remote whitelist
 local function CheckRemoteWhitelist()
-    local isAllowed = false
-    local response = nil
+    -- NOTE: Fungsi ini sekarang seharusnya merujuk ke file remote whitelist lain (misalnya admin_ids.json)
+    -- Namun, karena Anda hanya menyediakan satu file remote whitelist (yang sekarang digunakan untuk KeyWhitelist),
+    -- saya mempertahankan fungsi ini tetapi mencatat bahwa ini mungkin perlu disesuaikan jika remote whitelist
+    -- Admin/Owner adalah file yang berbeda.
     
+    local isAllowed = false
+    
+    -- Ambil data dari remote whitelist (yang diasumsikan isinya daftar user ID Admin)
     local success, result = pcall(function()
-        -- Gunakan request() untuk mengambil data dari link GitHub
         request = request or http_request or syn and syn.request
         if request then
             return request({
-                Url = REMOTE_WHITELIST_URL,
+                Url = REMOTE_WHITELIST_URL, -- Menggunakan URL yang sama (REMOTE_WHITELIST_URL)
                 Method = "GET"
             })
         end
@@ -355,26 +399,30 @@ local function CheckRemoteWhitelist()
             return HttpService:JSONDecode(result.Body) 
         end)
         
-        if decodeSuccess and decodedData and decodedData.allowed then
-            for _, entry in pairs(decodedData.allowed) do
-                if entry.id and tonumber(entry.id) == userid then
-                    isAllowed = true
-                    print("Remote Whitelist Check: User is allowed (" .. entry.name .. ")")
-                    break
-                end
-            end
-        end
-    else
-        warn("Failed to fetch or decode remote whitelist.")
+        -- Asumsi: Admin/Owner ID ada di dalam field "allowed" atau sejenisnya di file JSON tersebut.
+        -- Namun, file whitelist.json yang Anda berikan HANYA memiliki field "keys".
+        -- Agar kode tetap berfungsi, saya akan mengasumsikan file remote ini SEKARANG hanya untuk KeyWhitelist
+        -- dan menonaktifkan Remote Whitelist Admin/Owner berdasarkan User ID untuk menghindari error.
+        -- Jika Remote Whitelist Admin/Owner adalah file yang berbeda, Anda harus mengganti REMOTE_WHITELIST_URL di fungsi ini.
+        print("Remote Whitelist (Admin/Owner Check) skipped to avoid conflict with KeyWhitelist loading.")
     end
     
-    return isAllowed
+    return isAllowed -- Selalu false karena pengecekan dinonaktifkan
 end
 
 
--- Jalankan pengecekan
+-- Jalankan pengecekan Remote KeyWhitelist sebelum melanjutkan
+if not FetchKeyWhitelist() then
+    -- Jika gagal memuat daftar kunci, hentikan eksekusi
+    Library:Notify("FATAL ERROR: Failed to load KeyWhitelist from server. Unloading.", 10)
+    Library:Unload()
+    return -- Hentikan script
+end
+
+
+-- Jalankan pengecekan login
 if CheckRemoteWhitelist() then
-    -- Jika user ada di Remote Whitelist, berikan akses penuh
+    -- Jika user ada di Remote Whitelist (Admin/Owner), berikan akses penuh
     print("User is a whitelisted Admin/Owner. Skipping Key Check.")
     Library:Notify("Admin/Owner Access Granted!", 5)
     
