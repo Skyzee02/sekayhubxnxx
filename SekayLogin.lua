@@ -98,7 +98,7 @@ local function ValidateKey(Key)
                 key = Key,
                 success = true,
                 -- expire_at DIHAPUS, AKAN DIHITUNG DI BAWAH
-                level = keyData.level,
+                level = "level",
                 uplink = "V1.0",
                 blacklist = 0,
                 message = "Login Successfully (" .. keyData.level .. ")"
@@ -160,12 +160,14 @@ KeyTab:AddKeyBox(function(Success, RecivedKey)
     local isValid, dataOrMsg = ValidateKey(RecivedKey)
 
     if isValid then
-        -- >>> START MODIFIKASI INTI: Menggunakan Waktu Pembuatan Key dari Remote <<<
-        
+
+        Library:Notify("Correct Key!", 5)
+
         -- Ambil data Key secara lengkap (termasuk created_at) dari KeyWhitelist global
         local remoteKeyData = KeyWhitelist[RecivedKey]
         
-        -- Defaultkan created_at ke waktu saat ini jika tidak ada di remote (untuk kompatibilitas)
+        -- Gunakan created_at dari remote. Jika tidak ada (fallback), gunakan waktu saat ini.
+        -- Ini akan menjadi Waktu Awal (InitialTime) untuk perhitungan durasi.
         local InitialTime = remoteKeyData.created_at or GetCurrentTimeInSeconds() 
         
         local durationType = dataOrMsg.level -- Asumsi level sama dengan type
@@ -174,8 +176,8 @@ KeyTab:AddKeyBox(function(Success, RecivedKey)
         local expire_at_str
         local Level = dataOrMsg.level or "Unknown"
 
-        if durationType == "lifetime" then
-            -- Untuk kunci Lifetime, set tanggal kedaluwarsa ke masa depan yang sangat jauh
+        if durationType == "lifetime" or durationType == "Owner/Admin (Remote)" then
+            -- Lifetime dihitung dari InitialTime + 10 tahun
             local farFutureTime = InitialTime + (365 * 24 * 60 * 60 * 10)
             expire_at_str = os.date("%Y-%m-%d %H:%M:%S", farFutureTime)
         
@@ -188,20 +190,19 @@ KeyTab:AddKeyBox(function(Success, RecivedKey)
             expire_at_str = os.date("%Y-%m-%d %H:%M:%S", GetCurrentTimeInSeconds() + 3600)
             Level = "Unknown Duration"
         end
-        -- >>> END MODIFIKASI INTI <<<
-
+        
         local currentData = {
             Key = RecivedKey,
             HWID = hwid,
             RobloxUser = username,
             RobloxID = userid,
-            ExpireAt = expire_at_str, -- Menggunakan waktu yang baru dihitung
+            ExpireAt = expire_at_str, 
             Level = Level,
             Uplink = dataOrMsg.uplink or "Unknown",
             Blacklist = dataOrMsg.blacklist or 0,
             Message = dataOrMsg.message or "",
-            -- SIMPAN WAKTU AWAL DARI REMOTE (atau waktu saat ini)
-            InitialLoginTime = InitialTime -- InitialLoginTime di sini adalah waktu dibuat/ditemukan pertama kali
+            -- SIMPAN WAKTU AWAL (created_at) di file lokal untuk auto-login
+            InitialLoginTime = InitialTime 
         }
 
         _G.SIREN_Data = currentData
@@ -330,57 +331,48 @@ local Button = UIGroupbox:AddButton({
     DoubleClick = false -- Requires double-click for risky actions
 })
 
--- [[ START: LOGIKA AUTO-LOGIN & CEK KEDALUWARSA (dengan nama file baru) ]]
--- Fungsi untuk memuat data lokal dan memeriksa kedaluwarsa
--- Fungsi untuk memuat data lokal dan memeriksa kedaluwarsa
 -- Fungsi untuk memuat data lokal dan memeriksa kedaluwarsa
 local function LoadAndCheckKey()
     local savedData = nil
-    
-    -- !!! PERBAIKI: Implementasikan pembacaan file lokal di sini !!!
+    -- --- [PENTING: Implementasi pembacaan file lokal (readfile/JSONDecode)]---
     local success, content = pcall(function() return readfile(LOCAL_SAVE_FILE) end)
     if success and content and HttpService then
         pcall(function() savedData = HttpService:JSONDecode(content) end)
     end
-    -- !!! END PERBAIKI !!!
+    -- ---------------------------------------------------------------------
 
-    if savedData then
+    if savedData and savedData.InitialLoginTime then
         local currentTime = GetCurrentTimeInSeconds()
         local expire_time = 0
-        local initial_login_time = savedData.InitialLoginTime -- Ambil waktu awal login
+        local initial_login_time = savedData.InitialLoginTime -- Waktu Pembuatan/Awal yang tersimpan (TIDAK BERUBAH)
 
-        local durationType = savedData.Level or "Unknown" -- Ambil Level yang tersimpan (diasumsikan = type)
+        local durationType = savedData.Level -- Asumsi Level = Type
         local durationSeconds = DURATIONS[durationType]
 
-        -- Logika Perhitungan Expire Time (sudah benar)
-        if durationType == "Owner/Admin (Remote)" or durationType == "lifetime" then 
-             -- Owner/Admin atau lifetime dianggap lifetime
+        if durationType == "Owner/Admin (Remote)" or durationType == "lifetime" then
+             -- Lifetime dihitung dari Waktu Awal
              local farFutureTime = initial_login_time + (365 * 24 * 60 * 60 * 10)
              expire_time = farFutureTime
         elseif durationSeconds then
-            -- HITUNG ULANG KEDALUWARSA DARI INITIAL_LOGIN_TIME YANG TERSIMPAN
+            -- HITUNG ULANG KEDALUWARSA DARI INITIAL_LOGIN_TIME (Waktu Pembuatan)
             expire_time = initial_login_time + durationSeconds
         else
-            -- Fallback jika tipe tidak dikenal. Coba gunakan format ExpireAt lama (jika ada)
-            local year, month, day, hour, min, sec = tostring(savedData.ExpireAt or ""):match("^(%d+)-(%d+)-(%d+) (%d+):(%d+):(%d+)$")
-            if year then
-                expire_time = os.time({year = year, month = month, day = day, hour = hour, min = min, sec = sec})
-            else
-                expire_time = 0 -- Jika format lama gagal atau tidak ada InitialLoginTime
-            end
+            -- Fallback
+            expire_time = 0
         end
         
-        -- HANYA SATU KALI Cek apakah kunci sudah kedaluwarsa
+        -- Cek apakah kunci sudah kedaluwarsa
         if expire_time > currentTime then
             -- Kunci masih valid.
-            savedData.ExpireAt = os.date("%Y-%m-%d %H:%M:%S", expire_time) -- Update ExpireAt di savedData
-            
+            -- Perbarui ExpireAt (string) di savedData, tetapi InitialLoginTime tetap
+            savedData.ExpireAt = os.date("%Y-%m-%d %H:%M:%S", expire_time) 
+
+            -- ... (Logika Auto-Login Sukses)
             print("Auto-Login: Key still valid until " .. savedData.ExpireAt)
             Library:Notify("Auto-Login Success! Level: " .. savedData.Level, 5)
 
             _G.SIREN_Data = savedData -- Set data global
 
-            -- Muat Menu utama
             task.delay(3, function()
                 Library:Unload()
                 loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayMenu.lua", true))()
@@ -391,7 +383,6 @@ local function LoadAndCheckKey()
             print("Auto-Login: Saved key is expired.")
             Library:Notify("Your saved key has expired! Please enter a new one.", 5)
             
-            -- Hapus file kunci yang kedaluwarsa (disarankan)
             pcall(function() deletefile(LOCAL_SAVE_FILE) end) 
         end
     end
