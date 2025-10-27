@@ -207,8 +207,12 @@ KeyTab:AddKeyBox(function(Success, RecivedKey)
 
         SendWebhook(currentData)
 
-        task.delay(3, function()
-            Library:Unload()
+-- Hapus Window login (UI) agar tidak mengganggu.
+        Window:Destroy() 
+        
+        -- Beri waktu tunda yang sangat singkat (misalnya 1 detik) untuk memastikan notifikasi "Correct Key!" sempat terlihat.
+        task.delay(1, function()
+            -- Hapus Library:Unload() untuk memastikan skrip utama tetap berjalan dan dapat memuat menu baru.
             loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayMenu.lua", true))()
         end)
     else
