@@ -122,7 +122,7 @@ local function ValidateKey(Key)
         local response_data = {
             key = Key,
             success = true,
-            expire_at = expire_at_str,
+            Expire_At = expire_at_str,
             level = keyData.level,
             uplink = "V1.0",
             blacklist = 0,
@@ -364,8 +364,8 @@ local function LoadAndCheckKey()
             _G.SIREN_Data = savedData -- Set data global
 
             -- Muat Menu utama
-            task.delay(3, function()
-                Library:Unload()
+            task.delay(1, function()
+                Window:Destroy() -- Hancurkan UI login yang lama
                 loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayMenu.lua", true))()
             end)
             return true -- Auto-login berhasil
@@ -448,9 +448,8 @@ if CheckRemoteWhitelist() then
         Message = "Login Successfully (Owner/Admin)"
     }
 
-    Window:Hide() -- Sembunyikan UI Login
+    Window:Destroy() -- Hancurkan UI Login
     task.delay(1, function()
-        Library:Unload()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayMenu.lua", true))()
     end)
 
