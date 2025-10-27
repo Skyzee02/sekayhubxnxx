@@ -159,13 +159,29 @@ local function SendWebhook(data)
     end
 end
 
--- Fungsi BARU untuk memuat menu setelah login berhasil
+-- Fungsi untuk memuat menu setelah login berhasil
 local function LoadSekayMenu(data)
     _G.Sekay_Data = data
-    task.delay(3, function()
+    
+    -- MENGURANGI DELAY DARI 3 DETIK MENJADI 0.5 DETIK
+    -- Ini memberi waktu notifikasi "Correct Key!" tampil sebentar sebelum UI login ditutup.
+    task.delay(0.5, function()
+        
+        -- Hapus UI login saat ini
         Library:Unload()
-        -- Pastikan path script menu utama benar
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayMenu.lua", true))()
+        
+        -- Lakukan GET dan LOAD Menu Utama
+        -- KRITIS: PASTIKAN URL INI BENAR DAN MASIH AKTIF!
+        local success, err = pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayMenu.lua", true))()
+        end)
+
+        if not success then
+            -- Tampilkan error jika gagal memuat SekayMenu.lua
+            print("Failed to load SekayMenu.lua: " .. tostring(err))
+            Library:Notify("ERROR: Gagal memuat SekayMenu! Cek konsol (F9).", 8)
+        end
+        
     end)
 end
 
