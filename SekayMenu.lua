@@ -1,11 +1,14 @@
 -- example script by https://github.com/mstudio45/LinoriaLib/blob/main/Example.lua and modified by deivid
 -- You can suggest changes with a pull request or something
 
-local data = _G.SIREN_Data or {}
+-- example script by https://github.com/mstudio45/LinoriaLib/blob/main/Example.lua and modified by deivid
+-- You can suggest changes with a pull request or something
+
+local data = _G.Sekay_Data or {}
 local fileData = nil
 
-if isfile("SIREN_Data1.json") then
-    local success, result = pcall(readfile, "SIREN_Data1.json")
+if isfile("whitelist.json") then
+    local success, result = pcall(readfile, "whitelist.json")
     if success and result then
         local jsonSuccess, decodedData = pcall(function()
             return game:GetService("HttpService"):JSONDecode(result)
@@ -46,7 +49,9 @@ if tonumber(data.Blacklist) == 1 then
     return
 end
 
--- VALIDASI EXPIRED
+-- VALIDASI EXPIRED (Pengecekan Awal)
+-- Logic ini sudah benar untuk memeriksa saat script dimuat
+local ExpireTimestamp = nil
 if data.ExpireAt and data.ExpireAt ~= "Unknown" then
     local success, expireTime = pcall(function()
         -- ubah format tanggal dari PHP (contoh: "2025-09-25 02:00:00") jadi os.time()
@@ -55,18 +60,21 @@ if data.ExpireAt and data.ExpireAt ~= "Unknown" then
         return os.time({year = y, month = m, day = d, hour = h, min = min, sec = s})
     end)
 
-    if success and expireTime and expireTime < os.time() then
-        pcall(function()
-            game.StarterGui:SetCore("SendNotification", {
-                Title = "Sekay Hub",
-                Text = "Your key has expired!",
-                Duration = 5
-            })
-        end)
-        task.delay(3, function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayLogin.lua", true))()
-        end)
-        return
+    if success and expireTime then
+        ExpireTimestamp = expireTime -- Simpan timestamp untuk pengecekan real-time
+        if expireTime < os.time() then
+            pcall(function()
+                game.StarterGui:SetCore("SendNotification", {
+                    Title = "Sekay Hub",
+                    Text = "Your key has expired!",
+                    Duration = 5
+                })
+            end)
+            task.delay(3, function()
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayLogin.lua", true))()
+            end)
+            return -- Hentikan eksekusi script
+        end
     end
 end
 
@@ -86,8 +94,38 @@ local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
 local Options = Library.Options
 local Toggles = Library.Toggles
 
-Library.ForceCheckbox = false -- Forces AddToggle to AddCheckbox
-Library.ShowToggleFrameInKeybinds = true -- Make toggle keybinds work inside the keybinds UI (aka adds a toggle to the UI). Good for mobile users (Default value = true)
+-- ========================================
+-- TAMBAHAN: VALIDASI EXPIRED REAL-TIME (CONTINUOUS)
+-- ========================================
+if ExpireTimestamp then
+    task.spawn(function()
+        while task.wait(1) do
+            if ExpireTimestamp < os.time() then
+                -- Key telah expired saat script berjalan
+                pcall(function()
+                    game.StarterGui:SetCore("SendNotification", {
+                        Title = "Sekay Hub",
+                        Text = "Your key has expired in real-time. Unloading script!",
+                        Duration = 5
+                    })
+                end)
+                
+                -- Nonaktifkan key/script dengan meng-unload menu
+                Library:Unload()
+                
+                -- Redirect ke login
+                task.delay(3, function()
+                    loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayLogin.lua", true))()
+                end)
+
+                return -- Hentikan loop pengecekan
+            end
+        end
+    end)
+end
+-- ========================================
+
+Library.ForceCheckbox = false --
 
 local Window = Library:CreateWindow({
 	-- Set Center to true if you want the menu to appear in the center
@@ -210,8 +248,8 @@ local Button = LeftGroupBox:AddButton({
 
         -- Hapus semua data session
         _G.SIREN_Data = nil
-        if isfile("SIREN_Data1.json") then
-            delfile("SIREN_Data1.json")
+        if isfile("whitelist.json") then
+            delfile("whitelist.json")
         end
 
         -- Notifikasi
