@@ -86,43 +86,29 @@ end
 
 -- MODIFIED: Implements a local whitelist check supporting multiple expiry durations and Lifetime.
 local function ValidateKey(Key)
-    -- Menggunakan KeyWhitelist yang sudah diisi dari FetchKeyWhitelist()
     local keyData = KeyWhitelist[Key]
     
     if keyData then
-        local expire_at_str
-        local currentTime = GetCurrentTimeInSeconds()
         local durationType = keyData.type
 
-        if durationType == "lifetime" then
-            -- Untuk kunci Lifetime, set tanggal kedaluwarsa ke masa depan yang sangat jauh (misalnya 10 tahun)
-            local farFutureTime = currentTime + (365 * 24 * 60 * 60 * 10)
-            expire_at_str = os.date("%Y-%m-%d %H:%M:%S", farFutureTime)
-        
-        elseif DURATIONS[durationType] then
-            -- Untuk durasi sementara (30M, 1D, 7D, 30D), hitung kedaluwarsa dari waktu login saat ini
-            local durationSeconds = DURATIONS[durationType]
-            local expireTime = currentTime + durationSeconds
-            expire_at_str = os.date("%Y-%m-%d %H:%M:%S", expireTime)
-        
+        if durationType == "lifetime" or DURATIONS[durationType] then
+             -- TIDAK PERLU HITUNG expire_at DI SINI LAGI
+             
+            local response_data = {
+                key = Key,
+                success = true,
+                -- expire_at DIHAPUS, AKAN DIHITUNG DI BAWAH
+                level = keyData.level,
+                uplink = "V1.0",
+                blacklist = 0,
+                message = "Login Successfully (" .. keyData.level .. ")"
+            }
+            
+            return true, response_data
         else
-            -- Tipe kunci tidak dikenal, anggap tidak valid
             return false, "Invalid Key Type Configuration. Check remote whitelist.json structure."
         end
-
-        local response_data = {
-            key = Key,
-            success = true,
-            expire_at = expire_at_str,
-            level = keyData.level,
-            uplink = "V1.0",
-            blacklist = 0,
-            message = "Login Successfully (" .. keyData.level .. ")"
-        }
-        
-        return true, response_data
     else
-        -- Kunci tidak ditemukan di whitelist
         return false, "Key Not Found or Invalid."
     end
 end
@@ -169,22 +155,49 @@ local function SendWebhook(data)
 end
 
 -- Bagian KeyTab (Login Logic)
+-- Bagian KeyTab (Login Logic)
 KeyTab:AddKeyBox(function(Success, RecivedKey)
     local isValid, dataOrMsg = ValidateKey(RecivedKey)
 
     if isValid then
         Library:Notify("Correct Key!", 5)
 
+        -- >>> START MODIFIKASI INTI: Menentukan InitialLoginTime & ExpireAt <<<
+        local InitialLoginTime = GetCurrentTimeInSeconds() -- Waktu saat ini akan menjadi waktu awal
+        local durationType = dataOrMsg.level -- Asumsi level sama dengan type
+        local durationSeconds = DURATIONS[durationType]
+
+        local expire_at_str
+        local Level = dataOrMsg.level or "Unknown"
+
+        if durationType == "lifetime" then
+            -- Untuk kunci Lifetime, set tanggal kedaluwarsa ke masa depan yang sangat jauh
+            local farFutureTime = InitialLoginTime + (365 * 24 * 60 * 60 * 10)
+            expire_at_str = os.date("%Y-%m-%d %H:%M:%S", farFutureTime)
+        
+        elseif durationSeconds then
+            -- Untuk durasi sementara: Hitung kedaluwarsa dari InitialLoginTime
+            local expireTime = InitialLoginTime + durationSeconds
+            expire_at_str = os.date("%Y-%m-%d %H:%M:%S", expireTime)
+        else
+            -- Tipe tidak dikenal, fallback ke waktu saat ini + 1 jam
+            expire_at_str = os.date("%Y-%m-%d %H:%M:%S", InitialLoginTime + 3600)
+            Level = "Unknown Duration"
+        end
+        -- >>> END MODIFIKASI INTI <<<
+
         local currentData = {
-            Key = RecivedKey, -- Now correctly logs the user-entered key
+            Key = RecivedKey,
             HWID = hwid,
             RobloxUser = username,
             RobloxID = userid,
-            ExpireAt = dataOrMsg.expire_at or "Unknown",
-            Level = dataOrMsg.level or "Unknown",
+            ExpireAt = expire_at_str, -- Menggunakan waktu yang baru dihitung
+            Level = Level,
             Uplink = dataOrMsg.uplink or "Unknown",
             Blacklist = dataOrMsg.blacklist or 0,
-            Message = dataOrMsg.message or ""
+            Message = dataOrMsg.message or "",
+            -- SIMPAN WAKTU AWAL (diperlukan untuk auto-login)
+            InitialLoginTime = InitialLoginTime 
         }
 
         _G.SIREN_Data = currentData
@@ -192,7 +205,6 @@ KeyTab:AddKeyBox(function(Success, RecivedKey)
         -- Simpan ke file JSON lokal kalau remember diaktifkan
         if isRememberMeChecked then
            local jsonString = HttpService:JSONEncode(currentData)
-           -- !!! MODIFIKASI: Menggunakan variabel LOCAL_SAVE_FILE yang baru
            writefile(LOCAL_SAVE_FILE, jsonString)
         end
 
@@ -316,33 +328,42 @@ local Button = UIGroupbox:AddButton({
 
 -- [[ START: LOGIKA AUTO-LOGIN & CEK KEDALUWARSA (dengan nama file baru) ]]
 -- Fungsi untuk memuat data lokal dan memeriksa kedaluwarsa
+-- Fungsi untuk memuat data lokal dan memeriksa kedaluwarsa
 local function LoadAndCheckKey()
     local savedData = nil
-    
-    -- Cek apakah file lokal ada (menggunakan nama file baru: LOCAL_SAVE_FILE)
-    local fileExists, _ = pcall(function() return readfile(LOCAL_SAVE_FILE) end)
-    
-    if fileExists then
-        local success, content = pcall(function() return readfile(LOCAL_SAVE_FILE) end)
-        if success and content then
-            local decodedSuccess, decodedData = pcall(function() return HttpService:JSONDecode(content) end)
-            -- Pastikan data valid dan punya 'expire_at'
-            if decodedSuccess and type(decodedData) == "table" and decodedData.ExpireAt then 
-                savedData = decodedData
+    -- ... (Kode untuk memuat savedData)
+
+    if savedData then
+        local currentTime = GetCurrentTimeInSeconds()
+        local expire_time = 0
+        local initial_login_time = savedData.InitialLoginTime -- Ambil waktu awal login
+
+        local durationType = savedData.Level -- Asumsi Level = Type (sesuai data local saat ini)
+        local durationSeconds = DURATIONS[durationType]
+
+        if durationType == "Owner/Admin (Remote)" then -- Admin/Owner dianggap lifetime
+             local farFutureTime = initial_login_time + (365 * 24 * 60 * 60 * 10)
+             expire_time = farFutureTime
+        elseif durationType == "lifetime" then
+             local farFutureTime = initial_login_time + (365 * 24 * 60 * 60 * 10)
+             expire_time = farFutureTime
+        elseif durationSeconds then
+            -- HITUNG ULANG KEDALUWARSA DARI INITIAL_LOGIN_TIME YANG TERSIMPAN
+            expire_time = initial_login_time + durationSeconds
+        else
+            -- Fallback, jika type tidak dikenal, gunakan expire_at lama untuk cek
+            local year, month, day, hour, min, sec = savedData.ExpireAt:match("^(%d+)-(%d+)-(%d+) (%d+):(%d+):(%d+)$")
+            if year then
+                expire_time = os.time({year = year, month = month, day = day, hour = hour, min = min, sec = sec})
+            else
+                expire_time = 0 -- Jika format lama gagal
             end
         end
-    end
-    
-    if savedData then
-        -- Konversi string ExpireAt ke waktu epoch (detik)
-        -- Format: "%Y-%m-%d %H:%M:%S"
-        local expire_time = 0
-        local year, month, day, hour, min, sec = savedData.ExpireAt:match("^(%d+)-(%d+)-(%d+) (%d+):(%d+):(%d+)$")
-
-        if year then
-            -- os.time() bekerja di UTC jika string diawali '!'
-            expire_time = os.time({year = year, month = month, day = day, hour = hour, min = min, sec = sec})
-        end
+        
+        -- Cek apakah kunci sudah kedaluwarsa
+        if expire_time > currentTime then
+            -- Kunci masih valid. Update ExpireAt di savedData (opsional)
+            savedData.ExpireAt = os.date("%Y-%m-%d %H:%M:%S", expire_time) 
 
         local currentTime = GetCurrentTimeInSeconds()
         
