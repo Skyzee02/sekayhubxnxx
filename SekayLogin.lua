@@ -159,6 +159,7 @@ KeyTab:AddKeyBox(function(Success, RecivedKey)
     local isValid, dataOrMsg = ValidateKey(RecivedKey)
 
     if isValid then
+      Library:Notify("Correct Key!", 5)
 
 -- Ambil data Key secara lengkap (termasuk created_at) dari KeyWhitelist global
 local remoteKeyData = KeyWhitelist[RecivedKey]
