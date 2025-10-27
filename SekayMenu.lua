@@ -1,101 +1,73 @@
 -- example script by https://github.com/mstudio45/LinoriaLib/blob/main/Example.lua and modified by deivid
 -- You can suggest changes with a pull request or something
 
--- KODE YANG SUDAH DIPERBAIKI (MENGAMBIL DATA OTORISASI DARI GITHUB)
+local data = _G.SIREN_Data or {}
+local fileData = nil
 
--- ⚠️ PERINGATAN: Ganti URL ini dengan URL RAW JSON file yang berisi data otorisasi Anda.
--- File ini harus memiliki format seperti: {"Key": "UserKey123", "ExpirationTime": 1761491000, "Blacklist": 0}
-local AUTH_DATA_URL = "https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/whitelist.json" 
-
-local data = {} -- Inisialisasi data sebagai tabel kosong
-local successFetch, result = pcall(game:HttpGet, AUTH_DATA_URL, true) 
-
-if successFetch and result and result ~= "" then
-    local jsonSuccess, decodedData = pcall(function()
-        return game:GetService("HttpService"):JSONDecode(result)
-    end)
-    if jsonSuccess and decodedData and type(decodedData) == "table" then
-        -- Gunakan data yang di-fetch dari GitHub
-        data = decodedData 
-    else
-        warn("Failed to decode authorization JSON from GitHub or data is not a table.")
-    end
-else
-    warn("Failed to fetch authorization data from GitHub: " .. tostring(result))
-end
-
--- =======================================================
--- MENGAMBIL WHITELIST.JSON DARI GITHUB
--- =======================================================
-
--- Ganti [LINK RAW GITHUB KE whitelist.json ANDA DI SINI] dengan URL RAW file whitelist.json di repo GitHub Anda
-local WHITELIST_URL = "https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/whitelist.json" 
-
-local success, result = pcall(game:HttpGet, WHITELIST_URL, true) 
-if success and result and result ~= "" then
-    local jsonSuccess, decodedData = pcall(function()
-        return game:GetService("HttpService"):JSONDecode(result)
-    end)
-    if jsonSuccess and decodedData then
-        fileData = decodedData
+if isfile("SIREN_Data1.json") then
+    local success, result = pcall(readfile, "SIREN_Data1.json")
+    if success and result then
+        local jsonSuccess, decodedData = pcall(function()
+            return game:GetService("HttpService"):JSONDecode(result)
+        end)
+        if jsonSuccess and decodedData then
+            fileData = decodedData
+        end
     end
 end
 
--- =======================================================
--- VALIDASI KEY & WAKTU EXPIRED REAL-TIME
--- =======================================================
-
-local currentTime = os.time() -- Ambil waktu saat ini (Unix Timestamp)
-local expirationTime = data.ExpirationTime
-local keyIsExpired = false
-
--- 1. Cek apakah key sudah expired
--- ASUMSI: data.ExpirationTime adalah waktu kedaluwarsa (dalam Unix Timestamp)
-if expirationTime and type(expirationTime) == "number" and currentTime >= expirationTime then
-    keyIsExpired = true
-end
-
--- 2. Lakukan validasi key: key tidak ada, key "Unknown", atau key sudah expired
-if not data.Key or data.Key == "Unknown" or keyIsExpired then
-    
-    -- Tentukan pesan notifikasi berdasarkan kondisi
-    local notificationText = "Please login your key first, don't forget!"
-    if keyIsExpired then
-        -- Pesan khusus jika kunci nonaktif karena expired
-        notificationText = "Your key has **EXPIRED**! Please renew your access."
-        
-    elseif not data.Key or data.Key == "Unknown" then
-        -- Pesan jika kunci tidak ada
-        notificationText = "Please login your key first, don't forget!"
-    end
-
+-- VALIDASI KEY
+if not data.Key or data.Key == "Unknown" then
     pcall(function()
         game.StarterGui:SetCore("SendNotification", {
             Title = "Sekay Hub",
-            Text = notificationText,
+            Text = "Please login your key first, don't forget!",
             Duration = 5
         })
     end)
     task.delay(3, function()
-        -- Muat skrip login
         loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayLogin.lua", true))()
     end)
-    return -- Kunci dinonaktifkan: Hentikan eksekusi script utama menu jika key tidak valid/expired
+    return
 end
 
--- =======================================================
--- VALIDASI BLACKLIST (Setelah Key divalidasi dan belum expired)
--- =======================================================
-
+-- VALIDASI BLACKLIST
 if tonumber(data.Blacklist) == 1 then
     pcall(function()
         game.StarterGui:SetCore("SendNotification", {
             Title = "Sekay Hub",
-            Text = "Your account is blacklisted! Please contact support.",
+            Text = "Your account is blacklisted!",
             Duration = 5
         })
     end)
+    task.delay(3, function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayLogin.lua", true))()
+    end)
     return
+end
+
+-- VALIDASI EXPIRED
+if data.ExpireAt and data.ExpireAt ~= "Unknown" then
+    local success, expireTime = pcall(function()
+        -- ubah format tanggal dari PHP (contoh: "2025-09-25 02:00:00") jadi os.time()
+        local pattern = "(%d+)%-(%d+)%-(%d+) (%d+):(%d+):(%d+)"
+        local y, m, d, h, min, s = data.ExpireAt:match(pattern)
+        return os.time({year = y, month = m, day = d, hour = h, min = min, sec = s})
+    end)
+
+    if success and expireTime and expireTime < os.time() then
+        pcall(function()
+            game.StarterGui:SetCore("SendNotification", {
+                Title = "Sekay Hub",
+                Text = "Your key has expired!",
+                Duration = 5
+            })
+        end)
+        task.delay(3, function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayLogin.lua", true))()
+        end)
+        return
+    end
 end
 
 -- Ambil data dengan fallback (data > fileData > default)
