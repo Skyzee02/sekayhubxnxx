@@ -106,6 +106,57 @@ local Window = Library:CreateWindow({
 	ShowCustomCursor = true,
 })
 
+-- =======================================================
+-- REAL-TIME KEY EXPIRATION CHECK (Ditambahkan)
+-- =======================================================
+
+-- Fungsi untuk mengecek kadaluarsa key secara real-time
+local function CheckRealtimeExpiration()
+    -- ExpireAt diambil dari data login yang sudah dimuat (local ExpireAt)
+    if ExpireAt and ExpireAt ~= "Unknown" then
+        local success, expireTime = pcall(function()
+            -- Mengubah format tanggal (contoh: "2025-09-25 02:00:00") menjadi os.time()
+            local pattern = "(%d+)%-(%d+)%-(%d+) (%d+):(%d+):(%d+)"
+            local y, m, d, h, min, s = ExpireAt:match(pattern)
+            return os.time({year = y, month = m, day = d, hour = h, min = min, sec = s})
+        end)
+
+        if success and expireTime and expireTime < os.time() then
+            -- KEY SUDAH EXPIRED
+            pcall(function()
+                game.StarterGui:SetCore("SendNotification", {
+                    Title = "Sekay Hub",
+                    Text = "Key Anda telah kadaluarsa secara real-time! Script dinonaktifkan.",
+                    Duration = 10
+                })
+            end)
+
+            -- Nonaktifkan menu
+            Library:Unload()
+            
+            -- Reload login script setelah jeda singkat (menggunakan URL yang sama di awal script)
+            task.delay(3, function()
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayLogin.lua", true))()
+            end)
+            
+            -- Matikan eksekusi script lebih lanjut dengan error
+            error("Key Expired. Script terminated by real-time check.") 
+        end
+    end
+end
+
+-- Loop pengecekan key real-time
+task.spawn(function()
+    -- Cek sekali saat pertama kali loop berjalan
+    CheckRealtimeExpiration() 
+    
+    while task.wait(5) do -- Cek setiap 5 detik
+        CheckRealtimeExpiration()
+    end
+end)
+
+-- =======================================================
+
 -- CALLBACK NOTE:
 -- Passing in callback functions via the initial element parameters (i.e. Callback = function(Value)...) works
 -- HOWEVER, using Toggles/Options.INDEX:OnChanged(function(Value) ... ) is the RECOMMENDED way to do this.
