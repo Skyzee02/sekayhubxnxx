@@ -155,23 +155,39 @@ local function SendWebhook(data)
 end
 
 -- Bagian KeyTab (Login Logic)
--- Bagian KeyTab (Login Logic)
 KeyTab:AddKeyBox(function(Success, RecivedKey)
     local isValid, dataOrMsg = ValidateKey(RecivedKey)
 
     if isValid then
 
         Library:Notify("Correct Key!", 5)
+        
+-- Ambil data Key secara lengkap (termasuk created_at) dari KeyWhitelist global
+local remoteKeyData = KeyWhitelist[RecivedKey]
+        
+-- !!! MODIFIKASI: Pastikan created_at ada. Jika tidak ada, anggap data key rusak/tidak valid.
+if not remoteKeyData or not remoteKeyData.created_at then
+    Library:Notify("Incorrect Key! Key data is corrupted or missing creation time.", 7)
+    return
+end
 
-        -- Ambil data Key secara lengkap (termasuk created_at) dari KeyWhitelist global
-        local remoteKeyData = KeyWhitelist[RecivedKey]
+-- Waktu Awal (InitialTime) sekarang pasti adalah created_at yang statis dari remote.
+local InitialTime = remoteKeyData.created_at 
         
-        -- Gunakan created_at dari remote. Jika tidak ada (fallback), gunakan waktu saat ini.
-        -- Ini akan menjadi Waktu Awal (InitialTime) untuk perhitungan durasi.
-        local InitialTime = remoteKeyData.created_at or GetCurrentTimeInSeconds() 
+local durationType = dataOrMsg.level -- Asumsi level sama dengan type
+
+-- !!! MODIFIKASI DIMULAI DI SINI !!!
+-- Periksa keberadaan created_at secara eksplisit
+if not remoteKeyData.created_at then
+    Library:Notify("FATAL: Key data is corrupted (missing creation time).", 7)
+    return -- Hentikan proses login
+end
+
+-- Gunakan created_at dari remote. Ini akan menjadi Waktu Awal (InitialTime) yang statis.
+local InitialTime = remoteKeyData.created_at
         
-        local durationType = dataOrMsg.level -- Asumsi level sama dengan type
-        local durationSeconds = DURATIONS[durationType]
+local durationType = dataOrMsg.level -- Asumsi level sama dengan type
+local durationSeconds = DURATIONS[durationType]
 
         local expire_at_str
         local Level = dataOrMsg.level or "Unknown"
