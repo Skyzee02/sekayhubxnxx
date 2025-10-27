@@ -26,6 +26,7 @@ local LOCAL_SAVE_FILE = "whitelist.json"
 
 -- Ganti dengan link GitHub kamu untuk Whitelist (contoh URL mentah)
 local REMOTE_WHITELIST_URL = "https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/whitelist.json"
+  game:HttpGet(REMOTE_WHITELIST_URL, true)
 
 -- Variabel global lokal untuk menyimpan data KeyWhitelist yang dimuat dari REMOTE_WHITELIST_URL
 local KeyWhitelist = {} 
