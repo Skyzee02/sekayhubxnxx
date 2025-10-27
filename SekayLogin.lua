@@ -160,31 +160,17 @@ KeyTab:AddKeyBox(function(Success, RecivedKey)
 
     if isValid then
 
-        Library:Notify("Correct Key!", 5)
-        
 -- Ambil data Key secara lengkap (termasuk created_at) dari KeyWhitelist global
 local remoteKeyData = KeyWhitelist[RecivedKey]
         
--- !!! MODIFIKASI: Pastikan created_at ada. Jika tidak ada, anggap data key rusak/tidak valid.
+-- Wajibkan created_at ada di data remote. Jika tidak, hentikan login.
 if not remoteKeyData or not remoteKeyData.created_at then
-    Library:Notify("Incorrect Key! Key data is corrupted or missing creation time.", 7)
-    return
-end
-
--- Waktu Awal (InitialTime) sekarang pasti adalah created_at yang statis dari remote.
-local InitialTime = remoteKeyData.created_at 
-        
-local durationType = dataOrMsg.level -- Asumsi level sama dengan type
-
--- !!! MODIFIKASI DIMULAI DI SINI !!!
--- Periksa keberadaan created_at secara eksplisit
-if not remoteKeyData.created_at then
     Library:Notify("FATAL: Key data is corrupted (missing creation time).", 7)
-    return -- Hentikan proses login
+    return 
 end
 
--- Gunakan created_at dari remote. Ini akan menjadi Waktu Awal (InitialTime) yang statis.
-local InitialTime = remoteKeyData.created_at
+-- Waktu Awal (InitialTime) sekarang adalah created_at yang statis dari remote.
+local InitialTime = remoteKeyData.created_at 
         
 local durationType = dataOrMsg.level -- Asumsi level sama dengan type
 local durationSeconds = DURATIONS[durationType]
@@ -203,7 +189,7 @@ local durationSeconds = DURATIONS[durationType]
             expire_at_str = os.date("%Y-%m-%d %H:%M:%S", expireTime)
         else
             -- Tipe tidak dikenal, fallback
-            expire_at_str = os.date("%Y-%m-%d %H:%M:%S", GetCurrentTimeInSeconds() + 3600)
+            expire_at_str = os.date("%Y-%m-%d %H:%M:%S", remoteKeyData.created_at() + 3600)
             Level = "Unknown Duration"
         end
         
@@ -465,7 +451,7 @@ if CheckRemoteWhitelist() then
         HWID = hwid,
         RobloxUser = username,
         RobloxID = userid,
-        ExpireAt = os.date("%Y-%m-%d %H:%M:%S", GetCurrentTimeInSeconds() + (365 * 24 * 60 * 60 * 10)), -- Lifetime
+        ExpireAt = os.date("%Y-%m-%d %H:%M:%S", remoteKeyData.created_at() + (365 * 24 * 60 * 60 * 10)), -- Lifetime
         Level = "Owner/Admin (Remote)",
         Uplink = "V1.0",
         Blacklist = 0,
