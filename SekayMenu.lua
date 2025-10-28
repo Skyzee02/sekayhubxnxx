@@ -2059,7 +2059,7 @@ local Yahayuk = LeftGroupBox:AddButton({
         if not canWalk() then return end
 
         local success, err = pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/apies13/AutoWalk/refs/heads/main/SRN_Yahayuk.lua"))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SKY_Yahayuk.lua"))()
         end)
         if success then
             Library:Notify("Autowalk Loaded!", 5)
@@ -2209,7 +2209,7 @@ local Yntkts = LeftGroupBox:AddButton({
         if not canWalk() then return end
 
         local success, err = pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/apies13/AutoWalk/refs/heads/main/SRN_Yntkts.lua"))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SKY_Yntkts.lua"))()
         end)
         if success then
             Library:Notify("Autowalk Loaded!", 5)
