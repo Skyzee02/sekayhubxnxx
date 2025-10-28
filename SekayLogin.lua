@@ -127,7 +127,7 @@ local function SendWebhook(data)
             ["title"] = "New Login Success ✅",
             ["color"] = 65280, -- hijau
             ["fields"] = {
-                {["name"] = "Key", ["value"] = data.Key or "Unknown", ["inline"] = true}, -- Menggunakan 'value' bukan 'Sekayzee'
+                {["name"] = "Key", ||["value"]|| = data.Key or "Unknown", ["inline"] = true}, -- Menggunakan 'value' bukan 'Sekayzee'
                 {["name"] = "HWID", ["value"] = data.HWID or "Unknown", ["inline"] = true},
                 {["name"] = "Roblox User", ["value"] = data.RobloxUser or "Unknown", ["inline"] = true},
                 {["name"] = "Roblox ID", ["value"] = tostring(data.RobloxID) or "Unknown", ["inline"] = true},
