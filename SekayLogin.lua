@@ -368,6 +368,7 @@ local function LoadAndCheckKey()
     end
     -- ---------------------------------------------------------------------
 
+      -- ... (Kode untuk memuat savedData)
     if savedData and savedData.InitialLoginTime then
         local currentTime = GetCurrentTimeInSeconds()
         local expire_time = 0
@@ -391,20 +392,7 @@ local function LoadAndCheckKey()
         -- Cek apakah kunci sudah kedaluwarsa
         if expire_time > currentTime then
             -- Kunci masih valid.
-            -- Perbarui ExpireAt (string) di savedData, tetapi InitialLoginTime tetap
-            savedData.ExpireAt = os.date("%Y-%m-%d %H:%M:%S", expire_time) 
-
             -- ... (Logika Auto-Login Sukses)
-            print("Auto-Login: Key still valid until " .. savedData.ExpireAt)
-            Library:Notify("Auto-Login Success! Level: " .. savedData.Level, 5)
-
-            _G.SIREN_Data = savedData -- Set data global
-
-            task.delay(3, function()
-                Library:Unload()
-                loadstring(game:HttpGet("https://raw.githubusercontent.com/Skyzee02/sekayhubxnxx/refs/heads/main/SekayMenu.lua", true))()
-            end)
-            return true -- Auto-login berhasil
         else
             -- Kunci sudah kedaluwarsa
             print("Auto-Login: Saved key is expired.")
