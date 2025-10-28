@@ -121,13 +121,42 @@ local WebhookUrl = "https://canary.discord.com/api/webhooks/1432014189567672351/
 
 -- Fungsi untuk kirim webhook
 local function SendWebhook(data)
+    -- *** TAHAP MODIFIKASI DIMULAI DI SINI ***
+    
+    local rawKey = data.Key or "Unknown"
+    local censoredKey
+
+    if rawKey == "REMOTE-WHITELIST" then
+        -- Jika ini adalah login Admin/Owner, jangan sensorkan
+        censoredKey = "Owner/Admin Login" 
+    elseif #rawKey > 4 then
+        -- Sensor: Tampilkan 2 karakter pertama, sisanya (kecuali 2 karakter terakhir) menjadi 'X'
+        -- Contoh: ABCD-EFGH-IJKL-MNOP menjadi ABCD-XXXX-XXXX-MNOP
+        -- Ambil 2 karakter pertama
+        local prefix = rawKey:sub(1, 2) 
+        -- Ambil 2 karakter terakhir
+        local suffix = rawKey:sub(-2) 
+        -- Hitung jumlah karakter yang disensor
+        local censorsLength = #rawKey - 4 
+        -- Buat string sensor
+        local censors = string.rep("X", censorsLength) 
+        -- Gabungkan
+        censoredKey = prefix .. censors .. suffix
+    else
+        -- Kunci yang terlalu pendek akan disensor sepenuhnya
+        censoredKey = string.rep("X", #rawKey)
+    end
+    
+    -- *** TAHAP MODIFIKASI SELESAI DI SINI ***
+    
     local body = {
         ["username"] = "Sekay Hub Logger",
         ["embeds"] = {{
             ["title"] = "New Login Success ✅",
             ["color"] = 65280, -- hijau
             ["fields"] = {
-                {["name"] = "Key", ["value"] = data.Key or "Unknown", ["inline"] = true}, -- Menggunakan 'value' bukan 'Sekayzee'
+                -- Ganti data.Key dengan censoredKey
+                {["name"] = "Key", ["value"] = censoredKey, ["inline"] = true}, 
                 {["name"] = "HWID", ["value"] = data.HWID or "Unknown", ["inline"] = true},
                 {["name"] = "Roblox User", ["value"] = data.RobloxUser or "Unknown", ["inline"] = true},
                 {["name"] = "Roblox ID", ["value"] = tostring(data.RobloxID) or "Unknown", ["inline"] = true},
