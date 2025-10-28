@@ -20,12 +20,12 @@
       "level": "VIP 30 Days",
       "created_at": 1761591143
     },
-    "SEKAY-LIFETIME-VIP": {
+    "SEKAY-LIFETIME": {
       "type": "lifetime",
       "level": "VIP Lifetime",
       "created_at": 1761591143
     },
-    "ADMIN-MASTER-KEY": {
+    "ADMIN-MASTER": {
       "type": "lifetime",
       "level": "Admin Access",
       "created_at": 1761591143
