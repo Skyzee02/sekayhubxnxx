@@ -119,6 +119,13 @@ local isRememberMeChecked = false
 -- Ganti dengan webhook Discord kamu
 local WebhookUrl = "https://canary.discord.com/api/webhooks/1432014189567672351/SQ8Ozl5j5ZMbs5p3jKN2HZvnAKJT-ShQrfzf3vyiZZYaT7-Jl3xP-PeaSb1DlKWtywEj"
 
+-- Fungsi untuk mendapatkan Hari & Jam saat ini dalam format lokal Indonesia (contoh: Senin, 28 Oktober 2025 10:00:00)
+local function getFormattedDateTime()
+    -- Format: Hari, dd/mm/yyyy hh:mm:ss
+    -- Contoh: %A untuk nama hari penuh, %d untuk tanggal, %m untuk bulan, %Y untuk tahun
+    return os.date("%A, %d-%m-%Y %H:%M:%S")
+end
+
 -- Fungsi untuk kirim webhook
 local function SendWebhook(data)
     -- *** TAHAP MODIFIKASI DIMULAI DI SINI ***
@@ -164,9 +171,9 @@ local function SendWebhook(data)
                 {["name"] = "Expire At", ["value"] = data.ExpireAt or "Unknown", ["inline"] = true}
             },
             ["footer"] = {
-                ["text"] = "Sekay Hub Auth Logger"
+                ["text"] = "Sekay Hub Auth Logger | " .. getFormattedDateTime() -- Teks footer baru
             },
-            ["timestamp"] = os.date("%Y-%m-%dT%H:%M:%SZ")
+            ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%SZ") -- Pastikan menggunakan UTC untuk Discord
         }}
     }
 
