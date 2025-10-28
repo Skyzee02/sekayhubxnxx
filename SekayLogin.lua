@@ -203,17 +203,6 @@ KeyTab:AddKeyBox(function(Success, RecivedKey)
         -- Kirim webhook (pastikan fungsi SendWebhook ada)
         SendWebhook(_G.SIREN_Data)
         
-        -- Checkbox Remember Me
-KeyTab:AddCheckbox("Remember this Key", {
-    Text = "Remember this Key",
-    Tooltip = "Save your key for future sessions",
-    Default = false,
-    Callback = function(Value)
-        isRememberMeChecked = Value
-    end,
-})
-
-        Window:Hide() -- Sembunyikan UI Login
         task.delay(1, function()
             Library:Unload()
             -- Muat script menu
@@ -222,9 +211,19 @@ KeyTab:AddCheckbox("Remember this Key", {
 
     else
         -- Login Gagal
-        Library:Notify(dataOrMsg, 5)
+        Library:Notify("Incorrect Key! " .. tostring(dataOrMsg), 5)
     end
 end)
+
+-- Checkbox Remember Me
+KeyTab:AddCheckbox("Remember this Key", {
+    Text = "Remember this Key",
+    Tooltip = "Save your key for future sessions",
+    Default = false,
+    Callback = function(Value)
+        isRememberMeChecked = Value
+    end,
+})
 
 KeyTab:AddButton({
     Text = "Don't have the key? Go to the <font color='rgb(0, 195, 255)'>Info</font> Tab!",
