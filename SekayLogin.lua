@@ -1,5 +1,5 @@
 -- Mengganti Obsidian/Linoria Library dengan Wind UI Library
-local Wind = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/WindUI.lua"))()
+local Wind = loadstring(game:HttpGet("loadstring(game:HttpGet('https://raw.githubusercontent.com/Footagesus/WindUI/refs/heads/main/main_example.lua'))()"))()
 
 local Window = Wind:CreateWindow({
     Title = "Sekay Hub",

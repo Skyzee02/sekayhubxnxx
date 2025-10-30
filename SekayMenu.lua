@@ -78,7 +78,7 @@ local Uplink = data.Uplink or (fileData and fileData.Uplink) or "Unknown"
 local Blacklist = data.Blacklist or (fileData and fileData.Blacklist) or 0
 
 -- Ganti Obsidian/Linoria Library dengan Wind UI
-local repo = "https://raw.githubusercontent.com/Footagesus/WindUI/main/"
+local repo = "loadstring(game:HttpGet('https://raw.githubusercontent.com/Footagesus/WindUI/refs/heads/main/main_example.lua'))()"
 local Wind = loadstring(game:HttpGet(repo .. "WindUI.lua"))()
 
 -- OBSIDIAN ADDONS DIHAPUS KARENA TIDAK KOMPATIBEL DENGAN WIND UI
